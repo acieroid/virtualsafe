@@ -1,13 +1,13 @@
-create database secu;
-use secu;
-
 create table admin(
        id integer not null auto_increment,
        -- the login name
        name varchar(100),
        -- SHA-256 hash
-       password varchar(32),
-       primary key(id));
+       password varchar(256),
+       -- salt used for hashing the password
+       salt varchar(256),
+       primary key(id),
+       unique key(id));
 
 create table user(
        id integer not null auto_increment,
@@ -15,7 +15,9 @@ create table user(
        -- the user certificate is stored in md5(name)/certificate.crt
        name varchar(100),
        -- SHA-256 hash
-       password varchar(32), 
+       password varchar(256), 
+       -- salt used for hashing the password
+       salt varchar(256),
        -- is this user already validated?
        valid boolean,
        primary key(id));
@@ -34,12 +36,3 @@ create table file(
        primary key(id),
        foreign key (owner_id) references user(id) on delete cascade,
        foreign key (user_id) references user(id) on delete cascade);
-
-create user 'www'@'localhost' identified by 'password'; -- TODO: change password
-grant select on secu.admin to 'www';
-grant select, insert, update, delete on secu.user to 'www';
-grant select, insert, update, delete on secu.file to 'www';
-
-create user 'admin'@'localhost' identified by 'password'; -- TODO: change password
-grant select, insert, update, delete on secu.admin to 'admin';
-
