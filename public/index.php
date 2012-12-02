@@ -14,6 +14,20 @@ if ($user->identify('foo', 'bar')) {
   echo 'Incorrect credentials<br/>';
 }
 
+$user->invalidate();
+if ($user->valid) {
+  echo 'User is valid<br/>';
+} else {
+  echo 'User is invalid<br/>';
+}
+
+$user->validate();
+if ($user->valid) {
+  echo 'User is valid<br/>';
+} else {
+  echo 'User is invalid<br/>';
+}
+
 $user = new User(get_pdo());
 $user->name = "lol";
 if ($user->create("lol")) {

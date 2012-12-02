@@ -173,6 +173,42 @@ class User extends Identifiable {
     $stmt->bindValue(':salt', $salt);
     return $stmt->execute() && $this->fill_fields();
   }
+
+  /**
+   * Deletes an user
+   * Return true of success, false on failure.
+   */
+  public function delete() {
+    $stmt = $this->pro->prepare('delete from user where id = :id');
+    $stmt->bindValue(':id', $this->id);
+    return $stmt->execute() == 1;
+  }
+
+  /**
+   * Validate an user. When an user is valid, it can log in
+   * Return true on success, false on failure.
+   */
+  public function validate() {
+    $stmt = $this->pdo->prepare('update user set valid = true where id = :id');
+    $stmt->bindValue(':id', $this->id);
+    if ($stmt->execute() == 1) {
+      $this->valid = true;
+    }
+    return $this->valid;
+  }
+
+  /**
+   * Invalidate an user.
+   * Return true on success, false on failure
+   */
+  public function invalidate() {
+    $stmt = $this->pdo->prepare('update user set valid = false where id = :id');
+    $stmt->bindValue(':id', $this->id);
+    if ($stmt->execute() == 1) {
+      $this->valid = false;
+    }
+    return !$this->valid;
+  }
 }
 
 ?>
