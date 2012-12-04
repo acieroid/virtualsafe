@@ -37,6 +37,7 @@ if ($user->create("lol")) {
 }
 
 
+
 echo 'Random salt: ' . generate_salt() . '<br/>';
 
 ?>
