@@ -5,11 +5,8 @@ require_once('database.php');
 session_start();
 
 /**
- * Add an user to the session
- * TODO: to avoid session hijacking, we can store the (uid, descr)
- * tuple in the database, where descr is a string that identifies the
- * user connection (eg. its IP + user agent). In session_has_user, the
- * descr will be checked to see if it is the same client.
+ * Add an user to the session. We do not need any prevention for
+ * session hijacking, because the website is delivered in HTTPS
  */
 function session_store_user($user) {
   $_SESSION['uid'] = $user->id;
@@ -32,7 +29,6 @@ function session_get_user() {
 /**
  * Check if the session contains a user and if it is valid. Returns
  * true if it is the case, false otherwise
- * TODO: to avoid session hijacking, see session_store_user
  */
 function session_has_user() {
   return isset($_SESSION['uid']) && is_numeric($_SESSION['uid']);
@@ -47,7 +43,6 @@ function session_remove_user() {
 
 /**
  * Similar to session_store_user
- * TODO: see session_store_user
  */
 function session_store_admin($admin) {
   $_SESSION['aid'] = $admin->id;
