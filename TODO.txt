@@ -17,16 +17,17 @@
         be able to download the file anymore). This might be avoided
         by reencrypting the file with a new secret key after
         de-sharing
-  1. Admin panel: validate/invalidate and delete users
-  2. User panel: links to other user's page (3, 4, 5, 6, 7)
+  1. Admin panel: validate/invalidate users
+  2. User panel: links to other user's page (3, 4, 5, 6, 7, 8)
   3. User password modification page
   4. User certificate download page
-  5. User upload page (needs 0 to be done)
-  6. User file list page
-  7. User share file page (needs 0 to be done)
-  8. Java application: saves the private key and the certificate and
+  5. User revocation page
+  6. User upload page (needs 0 to be done)
+  7. User file list page
+  8. User share file page (needs 0 to be done)
+  9. Java application: saves the private key and the certificate and
      can sign files, or decrypt encrypted files (needs 0 to be done)
-  9. Threat model (for the report), see:
+  10. Threat model (for the report), see:
     - http://msdn.microsoft.com/en-us/library/ms978527.aspx
     - http://msdn.microsoft.com/en-us/library/ff648644.aspx
     - http://msdn.microsoft.com/en-us/library/ms978518.aspx
