@@ -24,6 +24,7 @@ function session_get_user() {
   $user = new User(get_pdo());
   $user->id = $_SESSION['uid'];
   $user->fill_fields();
+  return $user;
 }
 
 /**
