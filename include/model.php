@@ -209,6 +209,22 @@ class User extends Identifiable {
     }
     return !$this->valid;
   }
+
+  /**
+   * Return all the user not validated
+   */
+  static public function invalidated_users() {
+    $stmt = $this->pdo->prepare('select id, name from user where valid = false');
+    $res = $stmt->fetchAll();
+    $result = array();
+    foreach ($res as $u) {
+      $user = new User();
+      $user->id = $u['id'];
+      $user->name = $u['name'];
+      array_push($result, $user);
+    }
+    return $result;
+  }
 }
 
 ?>

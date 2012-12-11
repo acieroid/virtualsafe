@@ -17,10 +17,10 @@
         be able to download the file anymore). This might be avoided
         by reencrypting the file with a new secret key after
         de-sharing
-  1. Admin panel: validate/invalidate users
-  2. User panel: links to other user's page (3, 4, 5, 6, 7, 8)
+  X. Admin panel: validate/invalidate users
+  X. User panel: links to other user's page (3, 4, 5, 6, 7, 8)
   3. User password modification page
-  4. User certificate download page
+  X. User certificate download page
   5. User revocation page
   6. User upload page (needs 0 to be done)
   7. User file list page

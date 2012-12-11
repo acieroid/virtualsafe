@@ -10,8 +10,17 @@ if (isset($_GET['signin'], $_POST['name'], $_POST['password'])) {
   if ($user->identify($_POST['name'], $_POST['password'])) {
     session_store_user($user);
 ?>
-<p>You are now logged. You can now <a href="manage.php">manage your data</a></p>
+<p>You are now logged.</p>
 <?php
+    if ($user->is_valid()) {
+?>
+     <p>You can now <a href="manage.php">manage your data</a></p>
+<?php
+    } else {
+?>
+     <p>You are not validated yet. Please wait until an admin validates your account</p>
+<?php
+    }
   } else {
 ?>
   <p>Wrong user or password</p>
