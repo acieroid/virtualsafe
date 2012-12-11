@@ -8,8 +8,8 @@ if (!session_has_admin()) {
 ?>
   <p>You are not allowed to view this page</>
 <?php
-} else {
-  $id = $_GET['uid'];
+} else if (isset($_POST['uid'])) {
+  $id = $_POST['uid'];
   $user = new User(get_pdo());
   $user->id;
   if ($user->validate()) {
@@ -21,6 +21,10 @@ if (!session_has_admin()) {
     <p>There was a problem</p>
 <?php
   }
+} else {
+?>
+<p>Invalid request</p>
+<?php
 }
 ?>
     

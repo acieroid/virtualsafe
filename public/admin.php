@@ -14,8 +14,9 @@ if (!session_has_admin()) {
   <ul>
   <?php   
   foreach ($invalid_user as $u) {
-    /* TODO: avoid CSRF */
-    echo '<li>' . $u->name . ' <a href="validate.php?uid=' . $u->id . '">validate</a></li>';
+    /* TODO: Using POST instead of GET reduce the vulnerabilities to
+       CSRF, but we're still not entirely protected */
+    echo '<li>' . $u->name . ' <form action="validate.php" method="post"><input type="hidden" name="uid" value="' . $u->id . '"/><input type="submit" value="Validate" /></form></li>';
   }
 }
 ?>
