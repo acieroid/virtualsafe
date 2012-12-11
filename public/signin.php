@@ -12,7 +12,7 @@ if (isset($_GET['signin'], $_POST['name'], $_POST['password'])) {
 ?>
 <p>You are now logged.</p>
 <?php
-    if ($user->is_valid()) {
+    if ($user->valid) {
 ?>
      <p>You can now <a href="manage.php">manage your data</a></p>
 <?php
