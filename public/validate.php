@@ -10,7 +10,7 @@ if (!session_has_admin()) {
 <?php
 } else {
   $id = $_GET['uid'];
-  $user = new User();
+  $user = new User(get_pdo());
   $user->id;
   if ($user->validate()) {
 ?>
