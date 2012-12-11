@@ -22,7 +22,7 @@ if (session_has_user()) {
     <p>Error when creating the user</p>
 <?php
   }
-} else
+} else {
 ?>
 
 <form action="signup.php?signup" method="post">
