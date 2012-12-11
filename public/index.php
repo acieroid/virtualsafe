@@ -4,7 +4,7 @@ require_once('../include/database.php');
 require_once('../include/model.php');
 
 echo 'Creating user object<br/>';
-$user = new User(get_pdo());
+$user = new User();
 echo 'Identifying user<br/>';
 if ($user->identify('foo', 'bar')) {
   echo 'User identfied<br/>';
@@ -28,7 +28,7 @@ if ($user->valid) {
   echo 'User is invalid<br/>';
 }
 
-$user = new User(get_pdo());
+$user = new User();
 $user->name = "lol";
 if ($user->create("lol")) {
   echo 'Success when creating user<br/>';

@@ -8,6 +8,10 @@ if (!session_has_user()) {
 ?>
   <p>Please <a href="signin.php">sign in</a></p>
 <?php
+} else if (!session_get_user()->valid) {
+?>
+  <p>Your account has not been activated yet, please wait</p>
+<?php
 } else {
 ?>
   <p><ul>

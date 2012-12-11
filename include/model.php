@@ -8,8 +8,8 @@ abstract class ModelObject {
   protected $pdo;
   protected $table;
 
-  public function __construct(PDO $pdo) {
-    $this->pdo = $pdo;
+  public function __construct() {
+    $this->pdo = get_pdo();
   }
 }
 
@@ -49,7 +49,7 @@ abstract class Identifiable extends ModelObject {
       /* already filled */
       return true;
     } else if (isset($this->id)) {
-      $stmt = $this->pdo->prepare("select name from $this->table when id = :id");
+      $stmt = $this->pdo->prepare("select name from $this->table where id = :id");
       $stmt->bindValue(':id', $this->id);
       $stmt->execute();
       $res = $stmt->fetchAll();
@@ -215,6 +215,7 @@ class User extends Identifiable {
    */
   static public function invalidated_users() {
     $stmt = get_pdo()->prepare('select id, name from user where valid = false');
+    $stmt->execute();
     $res = $stmt->fetchAll();
     $result = array();
     foreach ($res as $u) {

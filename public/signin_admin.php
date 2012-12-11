@@ -6,7 +6,7 @@ require_once('../include/sessions.php');
 
 if (isset($_GET['signin'], $_POST['name'], $_POST['password'])) {
   /* The admin wants to log in */
-  $admin = new Admin(get_pdo());
+  $admin = new Admin();
   if ($admin->identify($_POST['name'], $_POST['password'])) {
     session_store_admin($admin);
 ?>

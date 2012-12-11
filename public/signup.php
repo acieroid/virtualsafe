@@ -10,7 +10,7 @@ if (session_has_user()) {
 <?php
 } else if (isset($_GET['signup'], $_POST['name'], $_POST['password'])) {
   /* The user wants to sign up */
-  $user = new User(get_pdo());
+  $user = new User();
   $user->name = $_POST['name'];
   if ($user->create($_POST['password'])) {
     /* TODO: create the certificate */

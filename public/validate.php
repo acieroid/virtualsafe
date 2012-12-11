@@ -9,9 +9,8 @@ if (!session_has_admin()) {
   <p>You are not allowed to view this page</>
 <?php
 } else if (isset($_POST['uid'])) {
-  $id = $_POST['uid'];
-  $user = new User(get_pdo());
-  $user->id;
+  $user = new User();
+  $user->id = $_POST['uid'];
   if ($user->validate()) {
 ?>
     <p>The user has been validated</p>

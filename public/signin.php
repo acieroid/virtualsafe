@@ -6,7 +6,7 @@ require_once('../include/sessions.php');
 
 if (isset($_GET['signin'], $_POST['name'], $_POST['password'])) {
   /* The user wants to log in */
-  $user = new User(get_pdo());
+  $user = new User();
   if ($user->identify($_POST['name'], $_POST['password'])) {
     session_store_user($user);
 ?>
