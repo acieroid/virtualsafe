@@ -214,7 +214,7 @@ class User extends Identifiable {
    * Return all the user not validated
    */
   static public function invalidated_users() {
-    $stmt = $this->pdo->prepare('select id, name from user where valid = false');
+    $stmt = get_pdo()->prepare('select id, name from user where valid = false');
     $res = $stmt->fetchAll();
     $result = array();
     foreach ($res as $u) {
