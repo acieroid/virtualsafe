@@ -27,6 +27,8 @@
   8. User share file page (needs 0 to be done)
   9. Java application: saves the private key and the certificate and
      can sign files, or decrypt encrypted files (needs 0 to be done)
+     - http://oreilly.com/catalog/javacrypt/chapter/ch06.html#24537
+     - http://www.herongyang.com/JDK/KeyStore-Read-in-Certificate-with-CertificateFactory.html
   10. Threat model (for the report), see:
     - http://msdn.microsoft.com/en-us/library/ms978527.aspx
     - http://msdn.microsoft.com/en-us/library/ff648644.aspx
