@@ -1,6 +1,7 @@
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -11,12 +12,14 @@ import java.io.Reader;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.File;
+import java.io.RandomAccessFile;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateException;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.Security;
+import java.security.Signature;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMReader;
 
@@ -28,6 +31,7 @@ public class KeyManager {
     private static final String CERTIFICATE_FILE = "certificate.crt";
     private static final String CERTIFICATE_KEY_FILE = "certificate.pem";
     private static final String DECRYPTION_KEY_FILE = "key.pem";
+    private static final String SIGNATURE_METHOD = "SHA1withRSA";
     /** The directory where the keys are located */
     private String dir;
     /** The certificate of the user */
@@ -196,7 +200,42 @@ public class KeyManager {
      * @return true on success, else false.
      */
     public boolean sign(String file, String signature) {
-        return false; /* TODO */
+        try {
+            /* Read the file content */
+            byte[] data = fileToByteArray(file);
+
+            /* Sign the data */
+            Signature signer = Signature.getInstance(SIGNATURE_METHOD);
+            signer.initSign(certKey);
+            signer.update(data);
+            byte[] signedData = signer.sign();
+
+            /* Write the signature */
+            byteArrayToFile(signedData, signature);
+        } catch (Exception e) {
+            System.out.println("ERROR: cannot sign the file: " + e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Read the content of a file and return it as a byte array
+     */
+    private byte[] fileToByteArray(String file) throws IOException {
+        RandomAccessFile f = new RandomAccessFile(file, "r");
+        byte[] b = new byte[(int)f.length()];
+        f.read(b);
+        return b;
+    }
+
+    /**
+     * Write the content of a byte array into a file
+     */
+    private void byteArrayToFile(byte[] array, String file) throws IOException {
+        FileOutputStream out = new FileOutputStream(file);
+        out.write(array);
+        out.close();
     }
 
     /**
