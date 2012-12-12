@@ -24,11 +24,9 @@ if (session_has_user()) {
 ?>
     <p>User created. Please wait that an admin validates your account.<br />
     Please copy the following into the program:<br />
-    <textarea readonly="readonly"> 
-<?php
+    <textarea readonly="readonly" cols="70" rows="85"><?php
     echo $cert->certstr . "\n" . $cert->privkeystr . "\n" . $key->privkeystr;
-?>
-    </textarea></p>
+    ?></textarea></p>
 <?php
   } else {
 ?>
