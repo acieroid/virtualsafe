@@ -14,8 +14,8 @@ class Certificate {
     $config = array('config' => '/etc/ssl/openssl.cnf',
                     'digest_alg' => 'sha1',
                     'private_key_bits' => 2048,
-                    'private_key_type' => OPENSSL_KEYTYPE_RSA,
-                    'encrypt_key' => false /* TODO: Not sure if useful/secure? */);
+                    'private_key_type' => OPENSSL_KEYTYPE_RSA);
+
     /* Fill the certificate informations */
     $dn = array('countryName' => 'BE',
                 'stateOrProvinceName' => 'Brussels',
@@ -35,10 +35,15 @@ class Certificate {
     $this->cert = openssl_csr_sign($this->csr, null, $this->privkey, 365, $config);
 
     /* Convert the certificate and key to readable values */
-    /* TODO: also save them to files */
-    /* TODO: drop the certificate part until the ----- BEGIN ... */
-    openssl_x509_export($this->cert, $this->certstr, false);
-    openssl_pkey_export($this->privkey, $this->privkeystr, false);
+    openssl_x509_export($this->cert, $this->certstr);
+    openssl_pkey_export($this->privkey, $this->privkeystr);
+  }
+
+  /**
+   * Save the certificate to a file
+   */
+  public function save($file) {
+    openssl_x509_export_to_file($this->cert, $file);
   }
 
   /**

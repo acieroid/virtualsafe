@@ -14,13 +14,19 @@ if (session_has_user()) {
   $user = new User();
   $user->name = $_POST['name'];
   if ($user->create($_POST['password'])) {
-    /* Generate the user's certificate */
+    /* Generate the user's certificate and save the public part */
     $cert = new Certificate($user);
+    $cert->save($user->get_certificate_file());
+    /* Generate the user encryption/decryption key (represented by a
+       certificate) and save the public part */
+    $key = new Certificate($user);
+    $key->save($user->get_pubkey_file());
 ?>
-    <p>User created. Please wait that an admin validates your account. Please copy your certificate and public/private key in the program:<br />
+    <p>User created. Please wait that an admin validates your account.<br />
+    Please copy the following into the program:<br />
     <textarea readonly="readonly"> 
 <?php
-    echo $cert->certstr . "\n" . $cert->privkeystr;
+    echo $cert->certstr . "\n" . $cert->privkeystr . "\n" . $key->privkeystr;
 ?>
     </textarea></p>
 <?php

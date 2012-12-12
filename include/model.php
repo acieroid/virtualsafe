@@ -226,6 +226,20 @@ class User extends Identifiable {
     }
     return $result;
   }
+
+  /**
+   * Return the path to the certificate file of this user
+   */
+  public function get_certificate_file() {
+    return '../data/certificates/' . sha1($this->name) . '.crt';
+  }
+
+  /**
+   * Return the path to the public encryption key of this user
+   */
+  public function get_pubkey_file() {
+    return '../data/pubkeys/' . sha1($this->name) . '.key';
+  }
 }
 
 ?>
