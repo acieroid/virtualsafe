@@ -1,9 +1,14 @@
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ByteArrayInputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.StringReader;
+import java.io.Reader;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.File;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateException;
@@ -18,6 +23,9 @@ import org.bouncycastle.openssl.PEMReader;
  * verifying, decrypting)
  */
 public class KeyManager {
+    private static final String CERTIFICATE_FILE = "certificate.crt";
+    private static final String CERTIFICATE_KEY_FILE = "certificate.pem";
+    private static final String DECRYPTION_KEY_FILE = "key.pem";
     /** The directory where the keys are located */
     private String dir;
 
@@ -27,6 +35,15 @@ public class KeyManager {
      */
     public KeyManager(String dir) {
         this.dir = dir;
+        /* Create the directory if it does not exists */
+        File directory = new File(dir);
+        if (!directory.exists()) {
+            if (!directory.mkdir()) {
+                System.out.println("ERROR: cannot create the directory " + dir);
+            }
+        }
+        /* We need BouncyCastle to read keys from PEM files */
+        Security.addProvider(new BouncyCastleProvider());
     }
 
     /**
@@ -44,26 +61,25 @@ public class KeyManager {
      */
     public boolean parse(InputStream stream) {
         try {
-            DataInputStream in = new DataInputStream(System.in);
-            /* Parse the certificate */
-            CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            Certificate cert = cf.generateCertificate(stream);
-
-            in.readByte(); /* drop the \n between the certificate and the next key*/
-
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            /* Parse the certificate */
+            String certStr = read(reader);
+            Certificate cert = parseCertificate(new ByteArrayInputStream(certStr.getBytes("US-ASCII")));
+            if (cert == null) {
+                System.out.println("ERROR: cannot read the certificate");
+            }
+
             /* Parse the certificate private key */
-            StringReader sr = new StringReader(readPrivKey(reader));
-            Security.addProvider(new BouncyCastleProvider());
-            PrivateKey certPrivKey = (PrivateKey) new PEMReader(sr).readObject();
+            String certPrivKeyStr = read(reader);
+            PrivateKey certPrivKey = parsePrivateKey(new StringReader(certPrivKeyStr));
             if (certPrivKey == null) {
                 System.out.println("ERROR: cannot read the certificate private key");
                 return false;
             }
 
             /* Parse the decryption private key */
-            sr = new StringReader(readPrivKey(reader));
-            PrivateKey decKey = (PrivateKey) new PEMReader(sr).readObject();
+            String decKeyStr = read(reader);
+            PrivateKey decKey = parsePrivateKey(new StringReader(decKeyStr));
             if (decKey == null) {
                 System.out.println("ERROR: cannot read the decryption key");
                 return false;
@@ -71,18 +87,37 @@ public class KeyManager {
 
             System.out.println("Key successfully read.");
 
+            /* Write the keys to the user directory */
+            write(certStr, CERTIFICATE_FILE);
+            write(certPrivKeyStr, CERTIFICATE_KEY_FILE);
+            write(decKeyStr, DECRYPTION_KEY_FILE);
         } catch (Exception e) {
-            System.out.println("ERROR: cannot parse certificate: " + e.getMessage());
+            System.out.println("ERROR: cannot parse certificate or key: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
-        return false;
+        return true;
     }
 
     /**
-     * Read a private key from the console input
+     * Parse a certificate from a stream
      */
-    private String readPrivKey(BufferedReader reader) throws IOException {
+    private Certificate parseCertificate(InputStream stream) throws CertificateException {
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        return cf.generateCertificate(stream);
+    }
+
+    /**
+     * Parse a private key from a reader
+     */
+    private PrivateKey parsePrivateKey(Reader reader) throws IOException {
+        return (PrivateKey) new PEMReader(reader).readObject();
+    }
+
+    /**
+     * Read a something from the console input until two \n are found
+     */
+    private String read(BufferedReader reader) throws IOException {
         StringBuilder sb = new StringBuilder();
 
         String pkey;
@@ -98,6 +133,15 @@ public class KeyManager {
             prev = character;
         }
         return sb.toString();
+    }
+
+    /**
+     * Write something to a file in the user directory
+     */
+    private void write(String content, String file) throws IOException {
+        BufferedWriter out = new BufferedWriter(new FileWriter(dir + "/" + file));
+        out.write(content);
+        out.close();
     }
 
     /**
