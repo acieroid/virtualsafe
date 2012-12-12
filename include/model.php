@@ -240,6 +240,204 @@ class User extends Identifiable {
   public function get_pubkey_file() {
     return '../data/pubkeys/' . sha1($this->name) . '.key';
   }
+
+  /**
+   * Return the public key of this user
+   */
+  public function get_pubkey() {
+    return openssl_pkey_get_public(get_pubkey_file());
+  }
+
+  /**
+   * Return the path to a file given its name
+   */
+  public function get_file_path($name) {
+    return '../data/files/' . sha1($this->name) . '/' . sha1($name);
+  }
+
+  /**
+   * Return the path to a signature of a file given its name
+   */
+  public function get_signature_path($name) {
+    return get_file_path($name) . '.sign';
+  }
+
+  /**
+   * Return the path to the key of a file given its name
+   */
+  public function get_key_path($name) {
+    return get_file_path($name) . '.key';
+  }
+
+  /**
+   * Change the password of an user.
+   * Return true on success, false on failure.
+   */
+  public function change_password($password) {
+    if (!self::password_valid($password)) {
+      return false;
+    }
+
+    /* create the new password */
+    $salt = generate_salt();
+    $hashed = hash_secure($this->name . '|' . $password . '|' . $salt);
+
+    $stmt = $this->pdo->prepare('update user set password = :password, salt = :salt where id = :id');
+    $stmt->bindValue(':id', $this->id);
+    $stmt->bindValue(':salt', $salt);
+    $stmt->bindValue(':password', $hashed);
+
+    return $stmt->execute();
+  }
+
+  /**
+   * Encrypt a file with a random key. $source is the unencrypted
+   * file, $filename is its original name. Save the encrypted file in
+   * a user-specific directory, along with the key used for encryption
+   * (itself encrypted using the user's public key).
+   */
+  public function encrypt_file($source, $filename) {
+    if (!file_exists($source)) {
+      return false;
+    }
+    $dest = get_file_path($filename);
+    $keydest = get_key_path($filename);
+    $key = generate_random_key();
+
+    /* check if the destination already exists */
+    if (file_exists($destination)) {
+      return false;
+    }
+
+    /* encrypt the file */
+    $content = file_get_contents($source);
+    $encrypted = encrypt_secure($content, $key);
+    /* save the encrypted file */
+    /* compare with === because it might return 0 and get evaluated to false */
+    if (file_put_contents($dest, $encrypted) === false) {
+      return false;
+    }
+
+    /* encrypt the key */
+    $encryptedKey = encrypt_secure($key, $this->get_pubkey());
+    /* save the encrypted key */
+    if (!file_put_contents($keydest, $encryptedKey) === false) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Check the uploaded signature of a file.
+   * Return true if the signature matches the file.
+   */
+  public function check_signature($file, $signature) {
+    if (!file_exists($file) || !file_exists($signature)) {
+      return false;
+    }
+
+    $content = file_get_contents($file);
+    $signContent = file_get_contents($signature);
+
+    return openssl_verify($content, $signContent, $this->get_pubkey()) == 1;
+  }
+
+  /**
+   * Save the signature of a file of this user. Returns true on success.
+   */
+  public function save_signature($signature, $filename) {
+    if (!file_exists($signature)) {
+      return false;
+    }
+
+    $content = file_get_contents($signature);
+    if (file_put_contents(get_signature_path($filename)) === false) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Add the database entry for a new file, given the filename.
+   * The file should have previously been stored in
+   * ../data/files/sha1(username)/sha1(filename), and its encryption key
+   * in the correspondingg .key file.
+   * Return true on success.
+   */
+  public function add_file($name) {
+    $stmt = $this->pdo->prepare('insert into file(user_id, filename) values (:id, :name');
+    $stmt->bindValue(':id', $this->id);
+    $stmt->bindValue(':name', $name);
+    return $stmt->execute();
+  }
+
+  /**
+   * Return the path to a file of this user, given the name of the
+   * file. Return true on success.
+   */
+  public function delete_file($filename) {
+    if (!file_exists(get_file_path($filename))) {
+      return false;
+    }
+
+    if (!unlink(get_file_path($filename)) ||
+        !unlink(get_signature_path($filename)) ||
+        !unlink(get_key_path($filename))) {
+      return false;
+    }
+
+    /* TODO: delete the keys of the shared files */
+
+    $stmt = $this->pdo->prepare('delete from file where user_id = :id and filename = :filename');
+    $stmt->bindValue(':id', $this->id);
+    $stmt->bindValue(':filename', $filename);
+    if (!$stmt->execute()) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Return the list of all the files owned by this user
+   */
+  public function list_owned_files() {
+    $stmt = $this->pdo->prepare('select filename from file where user_id = :id');
+    $stmt->bindValue(':id', $this->id);
+    $stmt->execute();
+    $res = $stmt->fetchAll();
+    $result = array();
+    foreach ($res as $f) {
+      array_push($result, $f['filename']);
+    }
+    return $result;
+  }
+
+  /**
+   * Return the list of all files shared by this user
+   */
+  public function list_shared_files() {
+    $stmt = $this->pdo->prepare('select filename from file where id in in (select file_id from share where owner_id = :id)');
+    $stmt->bindValue(':id', $this->id);
+    $stmt->execute();
+    $res = $stmt->fetchAll();
+    $result = array();
+    foreach ($res as $f) {
+      array_push($result, $f['filename']);
+    }
+    return $result;
+  }
+
+  /**
+   * Return the list of the files shared with this user
+   */
+  public function list_shared_files_with() {
+    /* TODO: we must get the filename AND the owner name to be able to
+       find the path to the file */
+    return array();
+  }
 }
 
 ?>
