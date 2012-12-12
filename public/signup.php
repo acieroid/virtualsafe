@@ -3,6 +3,7 @@ require_once('../include/utils.php');
 require_once('../include/database.php');
 require_once('../include/model.php');
 require_once('../include/sessions.php');
+require_once('../include/crypto.php');
 
 if (session_has_user()) {
 ?>
@@ -13,9 +14,15 @@ if (session_has_user()) {
   $user = new User();
   $user->name = $_POST['name'];
   if ($user->create($_POST['password'])) {
-    /* TODO: create the certificate */
+    /* Generate the user's certificate */
+    $cert = new Certificate($user);
 ?>
-    <p>User created. Please wait that an admin validates your account. Please copy your certificate and public/private key in the program:</p>
+    <p>User created. Please wait that an admin validates your account. Please copy your certificate and public/private key in the program:<br />
+    <textarea readonly="readonly"> 
+<?php
+    echo $cert->certstr . "\n" . $cert->privkeystr;
+?>
+    </textarea></p>
 <?php
   } else {
 ?>
