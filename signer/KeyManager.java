@@ -1,9 +1,11 @@
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.FileInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.io.FileReader;
 import java.io.StringReader;
 import java.io.Reader;
 import java.io.DataInputStream;
@@ -28,6 +30,10 @@ public class KeyManager {
     private static final String DECRYPTION_KEY_FILE = "key.pem";
     /** The directory where the keys are located */
     private String dir;
+    /** The certificate of the user */
+    private Certificate cert;
+    /** The private keys of the user */
+    private PrivateKey certKey, decKey;
 
     /**
      * Create a new key manager, that stores and read keys from the
@@ -47,11 +53,50 @@ public class KeyManager {
     }
 
     /**
-     * Check if the keys of the user already exists.
+     * Check if the keys of the user already exists and loads them.
      * @return true if the keys exists, else false.
      */
     public boolean keysExists() {
-        return false; /* TODO */
+        File certFile = new File(dir + "/" + CERTIFICATE_FILE);
+        File certKeyFile = new File(dir + "/" + CERTIFICATE_KEY_FILE);
+        File decKeyFile = new File(dir + "/" + DECRYPTION_KEY_FILE);
+
+        if (!certFile.exists() || !certKeyFile.exists() || !decKeyFile.exists()) {
+            System.out.println("No keys (or not all the required keys) were found");
+            return false;
+        }
+    
+        try {
+            /* Load the certificate */
+            FileInputStream stream = new FileInputStream(certFile);
+            cert = parseCertificate(stream);
+            if (cert == null) {
+                System.out.println("ERROR: cannot read the certificate");
+                return false;
+            }
+
+            /* Load the certificate private key */
+            FileReader reader = new FileReader(certKeyFile);
+            certKey = parsePrivateKey(reader);
+            if (certKey == null) {
+                System.out.println("ERROR: cannot read the certificate key");
+                return false;
+            }
+
+            /* Load the decryption key */
+            reader = new FileReader(decKeyFile);
+            decKey = parsePrivateKey(reader);
+            if (decKey == null) {
+                System.out.println("ERROR: cannot read the decryption key");
+                return false;
+            }
+
+            System.out.println("All the keys were successfully loaded");
+        } catch (Exception e) {
+            System.out.println("ERROR: failed to load the keys and certificate: " + e.getMessage());
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -64,22 +109,23 @@ public class KeyManager {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             /* Parse the certificate */
             String certStr = read(reader);
-            Certificate cert = parseCertificate(new ByteArrayInputStream(certStr.getBytes("US-ASCII")));
+            cert = parseCertificate(new ByteArrayInputStream(certStr.getBytes("US-ASCII")));
             if (cert == null) {
                 System.out.println("ERROR: cannot read the certificate");
+                return false;
             }
 
             /* Parse the certificate private key */
             String certPrivKeyStr = read(reader);
-            PrivateKey certPrivKey = parsePrivateKey(new StringReader(certPrivKeyStr));
-            if (certPrivKey == null) {
+            certKey = parsePrivateKey(new StringReader(certPrivKeyStr));
+            if (certKey == null) {
                 System.out.println("ERROR: cannot read the certificate private key");
                 return false;
             }
 
             /* Parse the decryption private key */
             String decKeyStr = read(reader);
-            PrivateKey decKey = parsePrivateKey(new StringReader(decKeyStr));
+            decKey = parsePrivateKey(new StringReader(decKeyStr));
             if (decKey == null) {
                 System.out.println("ERROR: cannot read the decryption key");
                 return false;
