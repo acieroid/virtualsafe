@@ -2,6 +2,7 @@ Done:
   - Admin panel: validate/invalidate users
   - User panel: links to other user's page
   - User certificate download page
+  - User password modification page
 
 Started:
   - Java application: saves the private key and the certificate and
@@ -10,7 +11,6 @@ Started:
      - http://www.herongyang.com/JDK/KeyStore-Read-in-Certificate-with-CertificateFactory.html
 
 To do:
-  - User password modification page
   - User revocation page
   - User upload page
   - User file list page

@@ -5,6 +5,8 @@ require_once('../include/model.php');
 require_once('../include/sessions.php');
 require_once('../include/csrf.php');
 
+include('menu.php');
+
 if (!session_has_admin()) {
 ?>
   <p>You are not allowed to view this page</>
