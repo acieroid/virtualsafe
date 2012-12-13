@@ -21,7 +21,7 @@ else if (isset($_GET['change_password'],$_POST['old_password'], $_POST['new_pass
 <?php
 }	else{
 ?>
-	<p>Fail to change password</p>
+	<p>The old Password is not correct</p>
 	<?php
 	
 }} 
