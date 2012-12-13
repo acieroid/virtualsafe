@@ -27,4 +27,9 @@ if (session_has_admin()) {
   array_push($menu, '<a href="signin_admin">Sign in as admin</a>');
 }
 
+foreach ($menu as $element) {
+  echo $element . ' - ';
+}
+
 ?>
+</p>
