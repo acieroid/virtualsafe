@@ -11,11 +11,11 @@ if (!session_has_user()) {
   <p>Please <a href="signin.php">sign in</a></p>
  <?php
  }
-else if (isset($_GET['change_password'], $_POST['new_password1'], $_POST['new_password2'])) {
+else if (isset($_GET['change_password'],$_POST['old_password'], $_POST['new_password1'], $_POST['new_password2'])) {
   /* The user wants to change his password */
   $user = session_get_user();
   if (strcmp($_POST['new_password1'], $_POST['new_password2'])==0){//Compare the new password
-	if ($user->change_password($_POST['new_password1'])) {  
+	if ($user->change_password($_POST['old_password'],$_POST['new_password1'])) {  
 ?>
 		<p>Password changed</p>
 <?php
