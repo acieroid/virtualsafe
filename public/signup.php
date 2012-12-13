@@ -6,6 +6,8 @@ require_once('../include/sessions.php');
 require_once('../include/csrf.php');
 require_once('../include/crypto.php');
 
+include('menu.php');
+
 if (session_has_user()) {
 ?>
   <p>You are already connected</p>

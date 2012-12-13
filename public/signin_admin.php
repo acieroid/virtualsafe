@@ -4,6 +4,8 @@ require_once('../include/database.php');
 require_once('../include/model.php');
 require_once('../include/sessions.php');
 
+include('menu.php');
+
 if (isset($_GET['signin'], $_POST['name'], $_POST['password'])) {
   /* The admin wants to log in */
   $admin = new Admin();
