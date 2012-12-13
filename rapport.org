@@ -1,0 +1,63 @@
+#+TITLE: INFO-F-405 -- Computer Security -- Projet 2
+#+AUTHOR: Groupe 3 -- Vadim Baele, Marwan Bellouti, Quentin Stievenart, Damien Wiltgen
+#+LATEX_HEADER: \usepackage[a4paper]{geometry}
+#+LATEX_HEADER: \geometry{hscale=0.7,vscale=0.7,centering}
+#+LATEX_HEADER: \usepackage[pdftex]{hyperref}
+#+LATEX_HEADER: \hypersetup{colorlinks,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black}
+#+OPTIONS:   H:3 num:t toc:nil \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
+* Choix d'implémentations
+* Threat model
+Le threat model a été fait selon la méthode décrite par le projet
+OWASP[fn:https://www.owasp.org/index.php/Application_Threat_Modeling].
+
+** Décomposition de l'application
+#+CAPTION: Threat Model Information
+#+ATTR_LaTeX: longtable align=|l|p{0.7\textwidth}|
+|---------------------+--------------|
+| *Application Name*  | Virtual Safe |
+|---------------------+--------------|
+| *Application Version* |          1.0 |
+|---------------------+--------------|
+| *Description*       |              |
+|---------------------+--------------|
+
+
+
+#+CAPTION: External Dependencies
+#+ATTR_LaTeX: longtable align=|c|p{\textwidth}|
+|------+---------------|
+| *ID* | *Description* |
+|------+---------------|
+|------+---------------|
+|    1 |               |
+
+#+CAPTION: Entry points
+#+ATTR_LaTeX: longtable align=|c|c|p{0.8\textwidth}|c|
+|------+--------+---------------+----------------|
+| *ID* | *Name* | *Description* | *Trust Levels* |
+|------+--------+---------------+----------------|
+|------+--------+---------------+----------------|
+|    1 |        |               | (i) foo        |
+|      |        |               | (i) bar        |
+|------+--------+---------------+----------------|
+|    2 |        |               |                |
+
+
+#+CAPTION: Assets
+#+ATTR_LaTeX: longtable align=|c|c|p{0.8\textwidth}|c|
+|------+--------+---------------+----------------|
+| *ID* | *Name* | *Description* | *Trust Levels* |
+|------+--------+---------------+----------------|
+|------+--------+---------------+----------------|
+|    1 |        |               |                |
+
+#+CAPTION: Trust Levels
+#+ATTR_LaTeX: longtable align=|c|c|p{\textwidth}|
+|------+--------+---------------+
+| *ID* | *Name* | *Description* |
+|------+--------+---------------+
+|------+--------+---------------+
+|    1 |        |               |
+
+** Détermination et classement des risques
+** Détermination des contremesures
