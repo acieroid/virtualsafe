@@ -59,6 +59,7 @@ function session_get_admin() {
   $admin = new Admin(get_pdo());
   $admin->id = $_SESSION['aid'];
   $admin->fill_fields();
+  return $admin;
 }
 
 /**
