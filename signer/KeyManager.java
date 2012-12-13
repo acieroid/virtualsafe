@@ -1,20 +1,25 @@
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.io.FileReader;
 import java.io.StringReader;
 import java.io.Reader;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.File;
+import java.io.RandomAccessFile;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateException;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.Security;
+import java.security.Signature;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMReader;
 
@@ -26,8 +31,13 @@ public class KeyManager {
     private static final String CERTIFICATE_FILE = "certificate.crt";
     private static final String CERTIFICATE_KEY_FILE = "certificate.pem";
     private static final String DECRYPTION_KEY_FILE = "key.pem";
+    private static final String SIGNATURE_METHOD = "SHA1withRSA";
     /** The directory where the keys are located */
     private String dir;
+    /** The certificate of the user */
+    private Certificate cert;
+    /** The private keys of the user */
+    private PrivateKey certKey, decKey;
 
     /**
      * Create a new key manager, that stores and read keys from the
@@ -47,11 +57,50 @@ public class KeyManager {
     }
 
     /**
-     * Check if the keys of the user already exists.
+     * Check if the keys of the user already exists and loads them.
      * @return true if the keys exists, else false.
      */
     public boolean keysExists() {
-        return false; /* TODO */
+        File certFile = new File(dir + "/" + CERTIFICATE_FILE);
+        File certKeyFile = new File(dir + "/" + CERTIFICATE_KEY_FILE);
+        File decKeyFile = new File(dir + "/" + DECRYPTION_KEY_FILE);
+
+        if (!certFile.exists() || !certKeyFile.exists() || !decKeyFile.exists()) {
+            System.out.println("No keys (or not all the required keys) were found");
+            return false;
+        }
+    
+        try {
+            /* Load the certificate */
+            FileInputStream stream = new FileInputStream(certFile);
+            cert = parseCertificate(stream);
+            if (cert == null) {
+                System.out.println("ERROR: cannot read the certificate");
+                return false;
+            }
+
+            /* Load the certificate private key */
+            FileReader reader = new FileReader(certKeyFile);
+            certKey = parsePrivateKey(reader);
+            if (certKey == null) {
+                System.out.println("ERROR: cannot read the certificate key");
+                return false;
+            }
+
+            /* Load the decryption key */
+            reader = new FileReader(decKeyFile);
+            decKey = parsePrivateKey(reader);
+            if (decKey == null) {
+                System.out.println("ERROR: cannot read the decryption key");
+                return false;
+            }
+
+            System.out.println("All the keys were successfully loaded");
+        } catch (Exception e) {
+            System.out.println("ERROR: failed to load the keys and certificate: " + e.getMessage());
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -64,22 +113,23 @@ public class KeyManager {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             /* Parse the certificate */
             String certStr = read(reader);
-            Certificate cert = parseCertificate(new ByteArrayInputStream(certStr.getBytes("US-ASCII")));
+            cert = parseCertificate(new ByteArrayInputStream(certStr.getBytes("US-ASCII")));
             if (cert == null) {
                 System.out.println("ERROR: cannot read the certificate");
+                return false;
             }
 
             /* Parse the certificate private key */
             String certPrivKeyStr = read(reader);
-            PrivateKey certPrivKey = parsePrivateKey(new StringReader(certPrivKeyStr));
-            if (certPrivKey == null) {
+            certKey = parsePrivateKey(new StringReader(certPrivKeyStr));
+            if (certKey == null) {
                 System.out.println("ERROR: cannot read the certificate private key");
                 return false;
             }
 
             /* Parse the decryption private key */
             String decKeyStr = read(reader);
-            PrivateKey decKey = parsePrivateKey(new StringReader(decKeyStr));
+            decKey = parsePrivateKey(new StringReader(decKeyStr));
             if (decKey == null) {
                 System.out.println("ERROR: cannot read the decryption key");
                 return false;
@@ -150,7 +200,42 @@ public class KeyManager {
      * @return true on success, else false.
      */
     public boolean sign(String file, String signature) {
-        return false; /* TODO */
+        try {
+            /* Read the file content */
+            byte[] data = fileToByteArray(file);
+
+            /* Sign the data */
+            Signature signer = Signature.getInstance(SIGNATURE_METHOD);
+            signer.initSign(certKey);
+            signer.update(data);
+            byte[] signedData = signer.sign();
+
+            /* Write the signature */
+            byteArrayToFile(signedData, signature);
+        } catch (Exception e) {
+            System.out.println("ERROR: cannot sign the file: " + e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Read the content of a file and return it as a byte array
+     */
+    private byte[] fileToByteArray(String file) throws IOException {
+        RandomAccessFile f = new RandomAccessFile(file, "r");
+        byte[] b = new byte[(int)f.length()];
+        f.read(b);
+        return b;
+    }
+
+    /**
+     * Write the content of a byte array into a file
+     */
+    private void byteArrayToFile(byte[] array, String file) throws IOException {
+        FileOutputStream out = new FileOutputStream(file);
+        out.write(array);
+        out.close();
     }
 
     /**

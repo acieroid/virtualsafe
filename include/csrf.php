@@ -19,7 +19,7 @@ class CSRFToken {
    * Return the token in a hidden form field
    */
   public function get() {
-    return '<input type="hidden" name="csrf" value="' . $this->token . . '" />';
+    return '<input type="hidden" name="csrf" value="' . $this->token . '" />';
   }
 }
 
@@ -31,7 +31,7 @@ class CSRF {
   /**
    * Generate a random token
    */
-  public static generate() {
+  public static function generate() {
     $token = sha1(str2hex(generate_salt()));
     $_SESSION['csrf'] = $token;
     return new CSRFToken($token);
@@ -40,7 +40,7 @@ class CSRF {
   /**
    * Check if a given token is correct
    */
-  public static check($token) {
+  public static function check($token) {
     return strcmp($_SESSION['csrf'], $token) == 0;
   }
 }

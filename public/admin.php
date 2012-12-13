@@ -3,6 +3,7 @@ require_once('../include/utils.php');
 require_once('../include/database.php');
 require_once('../include/model.php');
 require_once('../include/sessions.php');
+require_once('../include/csrf.php');
 
 if (!session_has_admin()) {
 ?>
@@ -10,13 +11,12 @@ if (!session_has_admin()) {
 <?php
 } else {
   $invalid_users = User::invalidated_users();
+  $token = CSRF::generate();
   ?>
   <ul>
   <?php   
   foreach ($invalid_users as $u) {
-    /* TODO: Using POST instead of GET reduce the vulnerabilities to
-       CSRF, but we're still not entirely protected */
-    echo '<li>' . $u->name . ' <form action="validate.php" method="post"><input type="hidden" name="uid" value="' . $u->id . '"/><input type="submit" value="Validate" /></form></li>';
+    echo '<li>' . $u->name . ' <form action="validate.php" method="post"><input type="hidden" name="uid" value="' . $u->id . '"/>' . $token->get() . '<input type="submit" value="Validate" /></form></li>';
   }
 }
 ?>

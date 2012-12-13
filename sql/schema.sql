@@ -35,7 +35,8 @@ create table file(
        -- the file is encrypted with a random secret key, which is
        -- stored encrypted in md5(username)/md5(filename).key
        filename varchar(100),
-       primary key(id)
+       primary key(id),
+       unique key(user_id, filename), -- the same user can't have two files with the same name
        foreign key (user_id) references user(id) on delete cascade);
 
 create table share(
