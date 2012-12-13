@@ -274,7 +274,7 @@ class User extends Identifiable {
    * Return true on success, false on failure.
    */
   public function change_password($old_password, $password) {
-    if (!self::password_valid($password) || !this->identify($this->name,$old_password)) {
+    if (!self::password_valid($password) || !$this->identify($this->name,$old_password)) {
       return false;
     }
 
