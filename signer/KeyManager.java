@@ -202,7 +202,7 @@ public class KeyManager {
     public boolean sign(String file, String signature) {
         try {
             /* Read the file content */
-            byte[] data = fileToByteArray(file);
+            byte[] data = fileToBytes(file);
 
             /* Sign the data */
             Signature signer = Signature.getInstance(SIGNATURE_METHOD);
@@ -210,8 +210,8 @@ public class KeyManager {
             signer.update(data);
             byte[] signedData = signer.sign();
 
-            /* Write the signature */
-            byteArrayToFile(signedData, signature);
+            /* Write the signature in a human-readable format */
+            bytesToFile(bytesToHex(signedData).getBytes(), signature);
         } catch (Exception e) {
             System.out.println("ERROR: cannot sign the file: " + e.getMessage());
             return false;
@@ -219,32 +219,45 @@ public class KeyManager {
         return true;
     }
 
-    /**
-     * Read the content of a file and return it as a byte array
-     */
-    private byte[] fileToByteArray(String file) throws IOException {
-        RandomAccessFile f = new RandomAccessFile(file, "r");
-        byte[] b = new byte[(int)f.length()];
-        f.read(b);
-        return b;
-    }
 
     /**
-     * Write the content of a byte array into a file
+     * Same as three-argument check, but for a file signed by this user
+     * @return true on succes, else false
      */
-    private void byteArrayToFile(byte[] array, String file) throws IOException {
-        FileOutputStream out = new FileOutputStream(file);
-        out.write(array);
-        out.close();
+    public boolean check(String file, String signature) {
+        return check(file, signature, dir + "/" + CERTIFICATE_FILE);
     }
 
     /**
      * Check that the file @param file match its signature, stored
-     * at @param signature.
+     * at @param signature, signed by the owner of @param certificate.
      * @return true on success, else false.
      */
-    public boolean check(String file, String signature) {
-        return false; /* TODO */
+    public boolean check(String file, String signature, String certificate) {
+        try {
+            /* Read the file content */
+            byte[] data = fileToBytes(file);
+
+            /* Read the signature from a human-readable format */
+            byte[] signedData = hexToBytes(new String(fileToBytes(signature)));
+
+            /* Read the certificate */
+            FileInputStream stream = new FileInputStream(certificate);
+            Certificate cert = parseCertificate(stream);
+            if (cert == null) {
+                System.out.println("ERROR: cannot read the certificate");
+                return false;
+            }
+
+            /* Check the signature */
+            Signature signer = Signature.getInstance(SIGNATURE_METHOD);
+            signer.initVerify(cert);
+            signer.update(data);
+            return signer.verify(signedData);
+        } catch (Exception e) {
+            System.out.println("ERROR: cannot check the signature: " + e.getMessage());
+            return false;
+        }
     }
 
     /**
@@ -255,5 +268,53 @@ public class KeyManager {
      */
     public boolean decrypt(String fileIn, String fileOut, String keyFile) {
         return false; /* TODO */
+    }
+
+    /**
+     * Convert a byte array to a string representing the hexadecimal
+     * representation of the byte array
+     */
+    private static String bytesToHex(byte[] bytes) {
+        final char[] hexArray = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+        char[] hexChars = new char[bytes.length * 2];
+        int v;
+        for ( int j = 0; j < bytes.length; j++ ) {
+            v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+
+    /**
+     * Convert a hex string to a byte array
+     */
+    private static byte[] hexToBytes(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                                  + Character.digit(s.charAt(i+1), 16));
+        }
+        return data;
+    }
+
+    /**
+     * Read the content of a file and return it as a byte array
+     */
+    private static byte[] fileToBytes(String file) throws IOException {
+        RandomAccessFile f = new RandomAccessFile(file, "r");
+        byte[] b = new byte[(int)f.length()];
+        f.read(b);
+        return b;
+    }
+
+    /**
+     * Write the content of a byte array into a file
+     */
+    private void bytesToFile(byte[] array, String file) throws IOException {
+        FileOutputStream out = new FileOutputStream(file);
+        out.write(array);
+        out.close();
     }
 }

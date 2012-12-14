@@ -16,7 +16,7 @@ public class CLI implements UI {
     /**
      * The possible parameters
      */
-    private String fileIn, fileOut, signature, keyFile;
+    private String fileIn = null, fileOut = null, signature = null, keyFile = null;
 
     public CLI(String[] args) {
         /* Parse parameters */
@@ -24,16 +24,26 @@ public class CLI implements UI {
             mode = INVALID;
         } if ((args[0].equals("-s") || args[0].equals("--sign")) &&
               args.length == 3) {
+            /* Signature */
             mode = SIGN;
             fileIn = args[1];
             signature = args[2];
         } else if ((args[0].equals("-c") || args[0].equals("--check")) &&
                    args.length == 3) {
+            /* Two-argument check */
             mode = CHECK;
             fileIn = args[1];
             signature = args[2];
+        } else if ((args[0].equals("-c") || args[0].equals("--check")) &&
+                   args.length == 4) {
+            /* Three-argument check */
+            mode = CHECK;
+            fileIn = args[1];
+            signature = args[2];
+            keyFile = args[3];
         } else if ((args[0].equals("-d") || args[0].equals("--decrypt")) &&
                    args.length == 4) {
+            /* Decryption */
             mode = DECRYPT;
             fileIn = args[1];
             fileOut = args[2];
@@ -60,7 +70,6 @@ public class CLI implements UI {
     }
 
     public void run(KeyManager manager) {
-        /* TODO: check the existence of the files */
         switch (mode) {
         case SIGN:
             if (manager.sign(fileIn, signature)) {
@@ -70,8 +79,12 @@ public class CLI implements UI {
             }
             break;
         case CHECK:
-            if (manager.check(fileIn, signature)) {
-                System.out.println("The signature match the file");
+            if (keyFile == null && manager.check(fileIn, signature)) {
+                /* Two-arguments check */
+                System.out.println("The signature matches your file");
+            } else if (keyFile != null && manager.check(fileIn, signature, keyFile)) {
+                /* Three-arguments check */
+                System.out.println("The signature matches the user's file");
             } else {
                 System.out.println("ERROR: the signature did not match the file. This file could be compromised. Please contact the sender of this file.");
             }
