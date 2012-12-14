@@ -22,9 +22,9 @@ if (session_has_user()) {
 if (session_has_admin()) {
   $admin = session_get_admin();
   array_push($menu, 'Connected as adminstrator as ' . $admin->name . '(<a href="signin_admin.php">signout</a>)');
-  array_push($menu, '<a href="validate.php">Validate some users</a>');
+  array_push($menu, '<a href="admin.php">Validate some users</a>');
 } else {
-  array_push($menu, '<a href="signin_admin">Sign in as admin</a>');
+  array_push($menu, '<a href="signin_admin.php">Sign in as admin</a>');
 }
 
 foreach ($menu as $element) {

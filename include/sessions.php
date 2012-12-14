@@ -36,6 +36,13 @@ function session_has_user() {
 }
 
 /**
+ * Check if the session has a valid user
+ */
+function session_has_valid_user() {
+  return session_has_user() && session_get_user()->valid;
+}
+
+/**
  * Remove the user from the session
  */
 function session_remove_user() {
