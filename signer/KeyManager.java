@@ -20,8 +20,16 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.Security;
 import java.security.Signature;
+import java.security.AlgorithmParameters;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMReader;
+import javax.crypto.Cipher;
+import javax.crypto.CipherOutputStream;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.spec.IvParameterSpec;
 
 /**
  * Class that manage the keys and operations with those keys (signing,
@@ -30,14 +38,19 @@ import org.bouncycastle.openssl.PEMReader;
 public class KeyManager {
     private static final String CERTIFICATE_FILE = "certificate.crt";
     private static final String CERTIFICATE_KEY_FILE = "certificate.pem";
+    private static final String ENCRYPTION_KEY_FILE = "key.crt";
     private static final String DECRYPTION_KEY_FILE = "key.pem";
     private static final String SIGNATURE_METHOD = "SHA1withRSA";
+    private static final String ASYMMETRIC_ENCRYPTION_METHOD = "RSA";
+    private static final String ENCRYPTION_ALGORITHM = "AES";
+    private static final String ENCRYPTION_METHOD = "AES/CTR/NoPadding";
+    private static final int ENCRYPTION_KEYSIZE = 256;
     /** The directory where the keys are located */
     private String dir;
-    /** The certificate of the user */
-    private Certificate cert;
+    /** The certificate and encryption key of the user */
+    private Certificate cert = null, encKey = null;
     /** The private keys of the user */
-    private PrivateKey certKey, decKey;
+    private PrivateKey certKey = null, decKey = null;
 
     /**
      * Create a new key manager, that stores and read keys from the
@@ -56,16 +69,17 @@ public class KeyManager {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    /**
+    /**nnnnn
      * Check if the keys of the user already exists and loads them.
      * @return true if the keys exists, else false.
      */
     public boolean keysExists() {
         File certFile = new File(dir + "/" + CERTIFICATE_FILE);
         File certKeyFile = new File(dir + "/" + CERTIFICATE_KEY_FILE);
+        File encKeyFile = new File(dir + "/" + ENCRYPTION_KEY_FILE);
         File decKeyFile = new File(dir + "/" + DECRYPTION_KEY_FILE);
 
-        if (!certFile.exists() || !certKeyFile.exists() || !decKeyFile.exists()) {
+        if (!certFile.exists() || !certKeyFile.exists() || !encKeyFile.exists() || !decKeyFile.exists()) {
             System.out.println("No keys (or not all the required keys) were found");
             return false;
         }
@@ -84,6 +98,14 @@ public class KeyManager {
             certKey = parsePrivateKey(reader);
             if (certKey == null) {
                 System.out.println("ERROR: cannot read the certificate key");
+                return false;
+            }
+
+            /* Load the encryption key */
+            stream = new FileInputStream(encKeyFile);
+            encKey = parseCertificate(stream);
+            if (encKey == null) {
+                System.out.println("ERROR: cannot read the encryption key");
                 return false;
             }
 
@@ -127,6 +149,14 @@ public class KeyManager {
                 return false;
             }
 
+            /* Parse the encryption key */
+            String encKeyStr = read(reader);
+            encKey = parseCertificate(new ByteArrayInputStream(encKeyStr.getBytes("US-ASCII")));
+            if (encKey == null) {
+                System.out.println("ERROR: cannot read the encryption key");
+                return false;
+            }
+
             /* Parse the decryption private key */
             String decKeyStr = read(reader);
             decKey = parsePrivateKey(new StringReader(decKeyStr));
@@ -140,6 +170,7 @@ public class KeyManager {
             /* Write the keys to the user directory */
             write(certStr, CERTIFICATE_FILE);
             write(certPrivKeyStr, CERTIFICATE_KEY_FILE);
+            write(encKeyStr, ENCRYPTION_KEY_FILE);
             write(decKeyStr, DECRYPTION_KEY_FILE);
         } catch (Exception e) {
             System.out.println("ERROR: cannot parse certificate or key: " + e.getMessage());
@@ -300,7 +331,43 @@ public class KeyManager {
      * @return true on success, else false.
      */
     public boolean encrypt(String fileIn, String fileOut, String keyFile) {
-        return false; /* TODO */
+        try {
+            /* Generate a random key */
+            KeyGenerator kg = KeyGenerator.getInstance(ENCRYPTION_ALGORITHM);
+            kg.init(ENCRYPTION_KEYSIZE);
+            SecretKey key = kg.generateKey();
+
+            /* Initialize the cipher */
+            Cipher cipher = Cipher.getInstance(ENCRYPTION_METHOD);
+            cipher.init(Cipher.ENCRYPT_MODE, key);
+
+            /* Encrypt the data */
+            byte[] data = cipher.doFinal(fileToBytes(fileIn));
+
+            /* Get the IV */
+            AlgorithmParameters params = cipher.getParameters();
+            byte[] iv = params.getParameterSpec(IvParameterSpec.class).getIV();
+
+            /* Save the encrypted data and the iv */
+            FileOutputStream out = new FileOutputStream(fileOut);
+            out.write(iv);
+            out.write(data);
+            out.close();
+
+            /* Encrypt the key with the pubkey */
+            cipher = Cipher.getInstance(ASYMMETRIC_ENCRYPTION_METHOD);
+            cipher.init(Cipher.ENCRYPT_MODE, encKey.getPublicKey());
+            data = cipher.doFinal(key.getEncoded());
+            
+            /* Save the encrypted key */
+            out = new FileOutputStream(keyFile);
+            out.write(data);
+            out.close();
+        } catch (Exception e) {
+            System.out.println("ERROR: cannot encrypt the file: " + e.getMessage());
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -310,7 +377,38 @@ public class KeyManager {
      * @return true on success, else false.
      */
     public boolean decrypt(String fileIn, String fileOut, String keyFile) {
-        return false; /* TODO */
+        try {
+            /* Read the encrypted key */
+            byte[] data = fileToBytes(keyFile);
+
+            /* Decrypt the key */
+            Cipher cipher = Cipher.getInstance(ASYMMETRIC_ENCRYPTION_METHOD);
+            cipher.init(Cipher.DECRYPT_MODE, decKey);
+            data = cipher.doFinal(data);
+            SecretKey key = new SecretKeySpec(data, 0, data.length, ENCRYPTION_ALGORITHM);
+
+            /* Read the IV and encrypted data from the file */
+            RandomAccessFile f = new RandomAccessFile(fileIn, "r");
+            byte[] iv = new byte[16]; /* the IV is 16 bytes long */
+            f.read(iv);
+            data = new byte[(int)f.length()-16]; /* the data is stored after the IV */
+            f.read(data);
+
+            /* Initialize the cipher */
+            cipher = Cipher.getInstance(ENCRYPTION_METHOD);
+            cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));
+
+            /* Decrypt the data */
+            data = cipher.doFinal(data);
+
+            /* Save the decrypted file */
+            bytesToFile(data, fileOut);
+        } catch (Exception e) {
+            System.out.println("ERROR: cannot decrypt the file: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     /**
