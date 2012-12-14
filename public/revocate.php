@@ -41,7 +41,7 @@ if (!session_has_user()) {
     ?>
     <p>Certificate revocated. Please copy the new certificate into the program:</p>
     <textarea readonly="readonly" cols="70" rows="85"><?php
-    echo $cert->certstr;
+    echo $cert->certstr . "\n" . $cert->privkeystr;
     ?></textarea></p>
     <?php
   } else {

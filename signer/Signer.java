@@ -36,6 +36,6 @@ public class Signer {
      * Print the usage of this program
      */
     private static void usage() {
-        System.out.println("Usage: signer [-h|--help] [-s file signature] [-c file signature] [-d file_in file_out keyfile]");
+        System.out.println("Usage: signer [-h|--help] [-s file signature] [-c file signature [certificate]] [-d file_in file_out keyfile] [-n new_certificate_file]");
     }
 }

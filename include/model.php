@@ -119,14 +119,14 @@ class User extends Identifiable {
   public $valid = false;
 
   /**
-   * Is the username a valid one? Check if it is already used by another user
-   * XXX: this method should be static, but it needs the PDO
+   * Is the username a valid one? Check if it is already used by
+   * another user and if it contains valid characters.
    */
   public function name_valid($name) {
-    $stmt = $this->pdo->prepare('select * from user where name = :name');
+    $stmt = get_pdo()->prepare('select * from user where name = :name');
     $stmt->bindValue(':name', $name);
     $stmt->execute();
-    return count($stmt->fetchAll()) == 0;
+    return count($stmt->fetchAll()) == 0 && preg_match("/[a-z0-9]+/i", $name);
   }
 
   /**

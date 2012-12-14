@@ -110,7 +110,7 @@ public class KeyManager {
      */
     public boolean parse(InputStream stream) {
         try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
             /* Parse the certificate */
             String certStr = read(reader);
             cert = parseCertificate(new ByteArrayInputStream(certStr.getBytes("US-ASCII")));
@@ -143,9 +143,42 @@ public class KeyManager {
             write(decKeyStr, DECRYPTION_KEY_FILE);
         } catch (Exception e) {
             System.out.println("ERROR: cannot parse certificate or key: " + e.getMessage());
-            e.printStackTrace();
             return false;
         }
+        return true;
+    }
+
+    /**
+     * Parse a new certificate and saves it
+     * @return true on success, else false.
+     */
+    public boolean newCertificate(InputStream stream) {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+            /* Parse the certificate */
+            String certStr = read(reader);
+            cert = parseCertificate(new ByteArrayInputStream(certStr.getBytes("US-ASCII")));
+            if (cert == null) {
+                System.out.println("ERROR: cannot read the certificate");
+                return false;
+            }
+
+            /* Parse the certificate private key */
+            String certPrivKeyStr = read(reader);
+            certKey = parsePrivateKey(new StringReader(certPrivKeyStr));
+            if (certKey == null) {
+                System.out.println("ERROR: cannot read the certificate private key");
+                return false;
+            }
+
+            /* Saves the certificate and the key, overwriting the previous values */
+            write(certStr, CERTIFICATE_FILE);
+            write(certPrivKeyStr, CERTIFICATE_KEY_FILE);
+        } catch (Exception e) {
+            System.out.println("ERROR: cannot parse the certificate: " + e.getMessage());
+            return false;
+        }
+
         return true;
     }
 

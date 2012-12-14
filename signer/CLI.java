@@ -5,8 +5,10 @@ public class CLI implements UI {
     private static final int CHECK = 2;
     /** Mode to decrypt a file */
     private static final int DECRYPT = 3;
+    /** Mode to give a new certificate, after revocation */
+    private static final int NEWCERT = 4;
     /** Invalid mode */
-    private static final int INVALID = 4;
+    private static final int INVALID = -1;
 
     /**
      * The chosen mode
@@ -48,6 +50,9 @@ public class CLI implements UI {
             fileIn = args[1];
             fileOut = args[2];
             keyFile = args[3];
+        } else if ((args[0].equals("-n") || args[0].equals("--newcert")) &&
+                   args.length == 1) {
+            mode = NEWCERT;
         } else {
             mode = INVALID;
         }
@@ -63,9 +68,9 @@ public class CLI implements UI {
     public void askKeys(KeyManager manager) {
         System.out.println("Please paste your certificate and private key:");
         if (manager.parse(System.in)) {
-            System.out.println("Thank you, the key is now saved");
+            System.out.println("Thank you, the certificate and private key are now saved");
         } else {
-            System.out.println("ERROR: cannot parse the key, please check if you correctly copied it");
+            System.out.println("ERROR: cannot parse the certificate or key, please check if you correctly copied it");
         }
     }
 
@@ -94,6 +99,14 @@ public class CLI implements UI {
                 System.out.println("The file " + fileIn + " has been decrypted with success to the file " + fileOut);
             } else {
                 System.out.println("ERROR: the file could not be decrypted");
+            }
+            break;
+        case NEWCERT:
+            System.out.println("Please paste your new certificate:");
+            if (manager.newCertificate(System.in)) {
+                System.out.println("Thank you, your new certificate has been saved");
+            } else {
+                System.out.println("ERROR: cannot parse the certificate, please check if you correctly copied it");
             }
             break;
         default:
