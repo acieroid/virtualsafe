@@ -1,0 +1,93 @@
+#+TITLE: Installation and Configuration
+#+AUTHOR: 
+#+LATEX_HEADER: \usepackage[a4paper]{geometry}
+#+LATEX_HEADER: \geometry{hscale=0.7,vscale=0.7,centering}
+#+LATEX_HEADER: \usepackage[pdftex]{hyperref}
+#+LATEX_HEADER: \hypersetup{colorlinks,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black}
+#+OPTIONS:   H:3 num:t toc:nil \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t todo:nil
+
+This document describes how to install the Virtual Safe application on
+a new server.
+* Software needed
+The Virtual Safe application needs the following software to be
+installed. We also give the version we used during development, as
+well as some FreeBSD specific instructions (the development was made
+on a FreeBSD jail available by all the members using git).
+
+  - Apache 2.2.23 (=www/apache22= port)
+  - OpenSSL 1.0.1 (=security/openssl=)
+  - MySQL 5.5.28 (=databases/mysql55-server=)
+  - PHP 5.4.9 (=lang/php5=), with the following plugins
+    - Mcrypt (=security/php5-mcrypt=)
+    - PDO for MySQL (=databases/php5-pdo_mysql=)
+
+The next sections will describe the configuration of those softwares.
+* Web Service
+** SSL
+First of all, the server's certificate should be created:
+#+BEGIN_SRC
+mkdir /etc/ssl/{private,cert}
+chmod 0700 /etc/ssl/{private,cert}
+openssl req -x509 -nodes -days 365 -out /etc/ssl/cert/server.crt -keyout /etc/ssl/private/server.key -newkey rsa:2048
+chmod 0400 /etc/ssl/private/server.key /etc/ssl/cert/server.crt
+#+END_SRC
+** Apache
+The following virtual host and directory entry should be added to
+Apache's configuration, where =/home/secu/www/= is the directory that
+contains the sources of the web service. The following listing could
+be for example be saved in =conf/extra/httpd-vhosts.conf= in the
+configuration directory of Apache, and the line =Include
+conf/extra/httpd-vhosts.conf= should then be added to Apache's main
+configuration file (=httpd.conf=).
+#+BEGIN_SRC
+NameVirtualHost *:443
+<VirtualHost *:443>
+     ServerName cours.awesom.eu
+     DocumentRoot /home/secu/www/public
+     SSLEngine on
+     SSLCertificateFile /etc/ssl/cert/server.crt
+     SSLCertificateKeyFile /etc/ssl/private/server.key
+</VirtualHost>
+
+<Directory /home/secu/www/public>
+  Order allow,deny
+  Allow from all
+  # Turn off all option to improve security
+  Options None
+  # Disable .ht* files
+  AllowOverride None
+</Directory>
+#+END_SRC
+*** Strengthening the default Apache configuration
+The following configuration lines are optional, but should be done on
+the production server to ensure maximal security. They can be put in
+Apache's main configuration file (=httpd.conf=).
+
+#+BEGIN_SRC
+# Don't show Apache's version
+ServerSignature Off
+ServerTokens Prod
+
+# Decrease the timeout and limit large requests to mitigate DDOS attacks
+Timeout 50
+LimitRequestBody 1048576 # 1Mo
+#+END_SRC
+
+** PHP
+PHP should be activated in Apache, so the following line should be
+added to Apache's main configuration file:
+
+#+BEGIN_SRC
+AddType application/x-httpd-php .php
+#+END_SRC
+
+The modules used by the web service should also be activated in PHP's =php.ini=:
+#+BEGIN_SRC
+extension=mcrypt.so
+extension=mysqli.so
+extension=mysql.so
+extension=openssl.so
+extension=pdo_mysql.so
+#+END_SRC
+* Database
+* Java Application
