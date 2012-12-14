@@ -98,7 +98,15 @@ Microsoft[fn::=http://msdn.microsoft.com/en-us/library/ms978527.aspx=]. It
 is organized as in the Microsoft's Web Application Threat Model
 Template[fn::=http://msdn.microsoft.com/en-us/library/ff648866.aspx=].
 
-** TODO Application Name and Description
+#+CAPTION: Application description
+#+ATTR_LaTeX: longtable align=|c|p{0.7\textwidth}|
+|---------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Name*        | Virtual Safe                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| *Version*     | 1.0                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| *Authors*     | Vadim Baele, Marwan Bellouti, Quentin Stievenart, Damien Wiltgen                                                                                                                                                                                                                                                                                                                                                                               |
+| *Description* | The application consists of a web service that allows the users to upload files on the service, knowing they will be securely saved. The users can then share files with other users, to allow other users to read those files. The service also have administrators, who have the responsibility to validate the user accounts. A program is made available to the users to manage their certificate and keys, and to sign and decrypt files. |
+
+
 ** DONE Security objectives
 The security objectives of the applications are:
   - Prevent an attacker from obtaining files accessible by the
@@ -141,18 +149,36 @@ following table:
 |------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------|
 
 *** DONE Key Scenarios
-The key scenarios are:
-  - Anonymous user creates new (non-valid) account
-  - Administrator validates a non valid account
-  - User logs in with a valid account
-  - User lists its own files
-  - User lists the files shared by him
-  - User lists the files shared with him
-  - User download a file (either owned by him or shared with him)
-  - User shares a file with another user
-  - User uploads a file along with its signature
-  - User revocates its certificate
-  - User deletes a file he owns
+The key scenarios are listed in the following table:
+#+CAPTION: Usage scenarios
+#+ATTR_LaTeX: longtable align=|c|p{\textwidth}|
+|------+---------------------------------------------------------------|
+| *ID* | *Description*                                                 |
+|------+---------------------------------------------------------------|
+|------+---------------------------------------------------------------|
+|    1 | Anonymous user creates new (non-valid) account                |
+|------+---------------------------------------------------------------|
+|    2 | Administrator validates a non valid account                   |
+|------+---------------------------------------------------------------|
+|    3 | User logs in with a valid account                             |
+|------+---------------------------------------------------------------|
+|    4 | User lists its own files                                      |
+|------+---------------------------------------------------------------|
+|    5 | User lists the files shared by him                            |
+|------+---------------------------------------------------------------|
+|    6 | User lists the files shared with him                          |
+|------+---------------------------------------------------------------|
+|    7 | User download a file (either owned by him or shared with him) |
+|------+---------------------------------------------------------------|
+|    8 | User shares a file with another user                          |
+|------+---------------------------------------------------------------|
+|    9 | User uploads a file along with its signature                  |
+|------+---------------------------------------------------------------|
+|   10 | User revocates its certificate                                |
+|------+---------------------------------------------------------------|
+|   11 | User deletes a file he owns                                   |
+|------+---------------------------------------------------------------|
+
 *** DONE Technologies
   - *Operating System*: FreeBSD 8.3
   - *Web Server Software*: Apache 2.2.23 with OpenSSL 1.0.1 to
@@ -163,7 +189,8 @@ The key scenarios are:
   - *Business Logic*: PHP classes
 
 The external dependencies are explained in more details in the
-following table:
+following table. The security of the application depends on the
+security of those external dependencies.
 #+CAPTION: External Dependencies
 #+ATTR_LaTeX: longtable align=|c|p{\textwidth}|
 |------+-------------------------------------------------------------------------------------------------------------------------|
@@ -185,7 +212,10 @@ following table:
 |    7 | The program given with the application will use Java and the Bouncy Castle library.                                     |
 |------+-------------------------------------------------------------------------------------------------------------------------|
 *** DONE Application Security Mechanisms
-  - Sensitive data is stored encrypted (files) or hashed (passwords).
+  - Sensitive data is stored encrypted (files) or hashed (passwords)
+    using secure methods.
+  - Every communication with the web server is made over an encrypted
+    channel, which is considered secure.
   - The web service is authenticated to the database using MySQL
     authentication scheme.
   - Server administration can only be performed from a SSH connection to
@@ -215,31 +245,63 @@ The general flow of data is represented in figure
 
 # TODO: plus de diagrammes ou de texte pour expliquer les autres data
 # flows
-*** TODO Entry Points
+*** DONE Entry Points
 Entry points are described in the following table
 
 #+CAPTION: Entry points
 #+ATTR_LaTeX: longtable align=|c|p{3cm}|p{0.6\textwidth}|p{3cm}|
-|------+-----------------------+--------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------|
-| *ID* | *Name*                | *Description*                                                                                                            | *Trust Levels*                                                                  |
-|------+-----------------------+--------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------|
-|------+-----------------------+--------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------|
-|    1 | HTTPS port            | The application will only be accessible via HTTPS. All the pages of the applications are available from this entry point | (1) Anonymous web user (2) User with valid credentials (3) Server administrator |
-|------+-----------------------+--------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------|
-|  1.1 | Login page            | The page allowing users to connect using their login credentials                                                         | (1) Anonymous web user (2) User with valid credentials                          |
-|------+-----------------------+--------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------|
-|  1.2 | Account creation page | The page allowing anonymous users to create a new account                                                                | (1) Anonymous web user                                                          |
-|------+-----------------------+--------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------|
-|  1.3 | Admin login page      | The page allowing administrators to connect using using their login credentials                                          | (1) Anonymous web user                                                          |
-|------+-----------------------+--------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------|
-|  1.4 | TODO                  |                                                                                                                          |                                                                                 |
-|------+-----------------------+--------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------|
-|------+-----------------------+--------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------|
+|------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
+| *ID* | *Name*                           | *Description*                                                                                                            | *Trust Levels*                                                                                                           |
+|------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
+|------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
+|    1 | HTTPS port                       | The application will only be accessible via HTTPS. All the pages of the applications are available from this entry point | (1) Anonymous web user (2) User with valid credentials (3) Administrator with valid credentials (4) Server administrator |
+|------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
+|  1.1 | Admin login page                 | The page allowing administrators to connect using using their login credentials                                          | (1) Anonymous web user                                                                                                   |
+|------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
+|  1.2 | User validation page             | The page allowing administrator to validate non-valid users                                                              | (3) Administrator with valid credentials                                                                                 |
+|------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
+|  1.3 | User Login page                  | The page allowing users to connect using their login credentials                                                         | (1) Anonymous web user (2) User with valid credentials                                                                   |
+|------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
+|  1.4 | Account creation page            | The page allowing anonymous users to create a new account                                                                | (1) Anonymous web user                                                                                                   |
+|------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
+|  1.5 | User file list                   | The page listing the files that the user can access                                                                      | (2) User with valid credentials                                                                                          |
+|------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
+|  1.6 | User file download               | The page that let the user download a file                                                                               | (2) User with valid credentials                                                                                          |
+|------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
+|  1.7 | User share page                  | The page allowing the user to share files with other users                                                               | (2) User with valid credentials                                                                                          |
+|------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
+|  1.8 | User file deletion page          | The page that let the user delete one of its files                                                                       | (2) User with valid credentials                                                                                          |
+|------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
+|  1.9 | User certificate revocation page | The page allowing the user to revocate its certificate                                                                   | (2) User with valid credentials                                                                                          |
+|------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
+| 1.10 | User file upload page            | The page allowing the user to upload a new file                                                                          | (2) User with valid credentails                                                                                          |
+|------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
 *** DONE Exits Points
 Exits points are:
   - The file list page, which displays the file name specified by the
     file owner
   - The menu of the application, which display the user's name
+*** DONE Assets
+#+CAPTION: Assets
+#+ATTR_LaTeX: longtable align=|c|p{3cm}|p{0.6\textwidth}|p{3cm}|
+|------+---------------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------|
+| *ID* | *Name*                          | *Description*                                   | *Trust Levels*                                                                         |
+|------+---------------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------|
+|------+---------------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------|
+|    1 | User data                       | All data related to the users                   | (2) User with valid credentials (4) Server administrator (5) Database web user         |
+|------+---------------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------|
+|  1.1 | User login credentials          | The user names and their passwords              | (2) User with valid credentials (5) Database web user                                  |
+|------+---------------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------|
+|  1.2 | User file list                  | The lists of the file that belong to an user    | (2) User with valid credentials (4) Server administrator (5) Database web user         |
+|------+---------------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------|
+|  1.3 | User files                      | The files of the user stored in the file system | (2) User with valid credentials (4) Server administrator                               |
+|------+---------------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------|
+|------+---------------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------|
+|    2 | Administrator data              | All data related to the administrators          | (3) Administrator with valid credentials (5) Database web user (6) Database admin user |
+|------+---------------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------|
+|  2.1 | Administrator login credentials | The administrator names and their passwords     | (3) Administrator with valid credentials (5) Database web user (6) Database admin user |
+|------+---------------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------|
+
 ** TODO Threats
 The tables that follows lists the existing threats.
 #+CAPTION: Threat: Malicious SQL data in user input
