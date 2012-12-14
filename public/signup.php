@@ -34,21 +34,22 @@ if (session_has_user()) {
 <?php
     } else {
 ?>
-      <p>CSRF token is invalid</p>
+      <p>Error when creating the user. Check that your password is strong enough. Maybe an user has already chosen this name, you may want to choose another one.</p>
 <?php
     }
   } else {
 ?>
-    <p>Error when creating the user</p>
+    <p>CSRF token is invalid</p>
 <?php
   }
 } else {
   $token = CSRF::generate();
 ?>
 
+<p>Please use a strong password. If you do not know how to have a strong password, read <a href="http://xkcd.com/936/">this</a>. Passwords shorter than 10 characters or composed exclusively of alphabetic characters will be rejected</p>
 <form action="signup.php?signup" method="post">
-  <label for="name">Name: </label><input type="text" name="name" id="name"/>
-  <label for="password">Password: </label><input type="password" name="password" id="password"/>
+  <p><label for="name">Name: </label><input type="text" name="name" id="name"/></p>
+  <p><label for="password">Password: </label><input type="password" name="password" id="password"/></p>
 <?php
   echo $token->get();
 ?>

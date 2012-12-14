@@ -133,7 +133,17 @@ class User extends Identifiable {
    * Check if the password given meets the security requirements
    */
   public static function password_valid($password) {
-    return true; /* TODO: no security requirements yet */
+    if (strlen($password) < 10) {
+      /* password too short, rejected */
+      return false;
+    }
+
+    if (preg_match("/^[a-z]$/i", $password)) {
+      /* only alphabetical characters, rejected */
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -159,7 +169,8 @@ class User extends Identifiable {
    * Return true on succes, false on failure
    */
   public function create($password) {
-    if (!$this->name_valid($this->name) || !self::password_valid($password)) {
+    if (!self::name_valid($this->name) || !self::password_valid($password) ||
+        strcmp($this->name, $password) == 0 /* same username and password, rejected */) {
       return false;
     }
 
