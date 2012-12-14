@@ -4,21 +4,21 @@
 #+LATEX_HEADER: \geometry{hscale=0.7,vscale=0.7,centering}
 #+LATEX_HEADER: \usepackage[pdftex]{hyperref}
 #+LATEX_HEADER: \hypersetup{colorlinks,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black}
-#+OPTIONS:   H:3 num:t toc:nil \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
-* Implementation choices
-** Cryptographic methods used
+#+OPTIONS:   H:3 num:t toc:nil \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t todo:nil
+* TODO Implementation choices
+** DONE Cryptographic methods used
 Unsecure cryptographic methods (MD5, DES, ...) were avoided, and the
 following methods were chosen:
   - AES-256 with a random IV for encrypting documents
   - SHA1 as a cryptographic hash function
   - RSA with 2048-bit keys for signing
 
-In the rest of this report, when we refer to /encrypt something/, it
+In the rest of this document, when we refer to /encrypt something/, it
 means encrypting it with AES-256 with a random IV. When we refer to
 /hash something/, it means hashing it with SHA1. When we refer to
 /sign something/, it refers to sign it with RSA using 2048-bit keys
 and SHA1 as the hash function.
-** Securing the data on the server
+** DONE Securing the data on the server
 *** User passwords
 The user passwords are stored on the database. There were multiple
 way to store them:
@@ -90,11 +90,80 @@ To summarize how this method works:
     file with (/B/). He decrypts the encrypted secret key with its
     private key, encrypts it with /B/'s public-key, and send the
     result to the server, which saves it
-* Threat model
+* TODO Threat model
 This threat model was done using the methods described by the OWASP
-project[fn::https://www.owasp.org/index.php/Application_Threat_Modeling]
-and by Microsoft[fn::http://msdn.microsoft.com/en-us/library/ms978527.aspx].
-** Application Decomposition
+project[fn::=https://www.owasp.org/index.php/Application_Threat_Modeling=]
+and by
+Microsoft[fn::=http://msdn.microsoft.com/en-us/library/ms978527.aspx=]. It
+is organized as in the Microsoft's Web Application Threat Model
+Template[fn::=http://msdn.microsoft.com/en-us/library/ff648866.aspx=].
+
+** TODO Application Name and Description
+** DONE Security objectives
+The security objectives of the applications are:
+  - Prevent an attacker from obtaining files accessible by the
+    application's users without having the authorization from the
+    file owner
+  - Protect the integrity of the files, ie. prevent an attacker to
+    modify a file stored by some user without the user noticying it.
+  - Prevent an attacker to validate non valid users
+  - Prevent an attacker to log in with another user account or with
+    an administrator account
+  - Prevent an attacker to obtain user or administrator passwords
+  - Prevent an attacker to obtain a user's private keys
+** TODO Application Overview
+*** TODO End-to-End Deployment Scenario
+*** DONE Roles
+There are two kinds of users of the web service: users and
+administrators. They have the following roles
+  - Administrators can validate user accounts, but cannot do anything else
+  - Users can read and update their own data
+
+Other trusts levels can be identified, and are listed in the
+following table:
+#+CAPTION: Trust Levels
+#+ATTR_LaTeX: longtable align=|c|p{3cm}|p{0.7\textwidth}|
+|------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------|
+| *ID* | *Name*                               | *Description*                                                                                                                 |
+|------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------|
+|------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------|
+|    1 | Anonymous web user                   | A user who has connected to the application and is not logged                                                                 |
+|------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------|
+|    2 | User with valid credentials          | A user who is logged in the application using valid login credentials                                                         |
+|------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------|
+|    3 | Administrator with valid credentials | An administrator of the website who is logged in the application using valid credentials                                      |
+|------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------|
+|    4 | Server administrator                 | The administrator who has access to the server with a root account                                                            |
+|------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------|
+|    5 | Database web user                    | The database user who has access to the tables 'user', 'file' and 'share' in read and write, and to the 'admin' table in read |
+|------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------|
+|    6 | Database admin user                  | The database user who has access to the table 'admin' in read and write                                                       |
+|------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------|
+
+*** DONE Key Scenarios
+The key scenarios are:
+  - Anonymous user creates new (non-valid) account
+  - Administrator validates a non valid account
+  - User logs in with a valid account
+  - User lists its own files
+  - User lists the files shared by him
+  - User lists the files shared with him
+  - User download a file (either owned by him or shared with him)
+  - User shares a file with another user
+  - User uploads a file along with its signature
+  - User revocates its certificate
+  - User deletes a file he owns
+*** DONE Technologies
+  - *Operating System*: FreeBSD 8.3
+  - *Web Server Software*: Apache 2.2.23 with OpenSSL 1.0.1 to
+    encrypt HTTP traffic
+  - *Database Server Software*: MySQL 5.5.28
+  - *Development Languages*: PHP 5.4.7 and Java
+  - *Data Access Logic*: PDO (PHP)
+  - *Business Logic*: PHP classes
+
+The external dependencies are explained in more details in the
+following table:
 #+CAPTION: External Dependencies
 #+ATTR_LaTeX: longtable align=|c|p{\textwidth}|
 |------+-------------------------------------------------------------------------------------------------------------------------|
@@ -115,30 +184,42 @@ and by Microsoft[fn::http://msdn.microsoft.com/en-us/library/ms978527.aspx].
 |------+-------------------------------------------------------------------------------------------------------------------------|
 |    7 | The program given with the application will use Java and the Bouncy Castle library.                                     |
 |------+-------------------------------------------------------------------------------------------------------------------------|
+*** DONE Application Security Mechanisms
+  - Sensitive data is stored encrypted (files) or hashed (passwords).
+  - The web service is authenticated to the database using MySQL
+    authentication scheme.
+  - Server administration can only be performed from a SSH connection to
+    the server's host, available only when having an accepted private
+    key.
+  - The server's logs are monitored by =logwatch=, and any suspect
+    behaviour should be detected, the server's administrator will be
+    notified.
+  - The server's software versions are monitored by =portaudit=, and
+    any security flaw should be discovered in one of the installed
+    software, the server's administrator will be immediately notified
+    and should perform what is necessary to ensure the application
+    security.
+** TODO Application Decomposition
+*** DONE Trust Boundaries
+Identified trust boundaries are:
+  - The perimeter firewall
+  - The database trusts calls from the identified web application
+*** TODO Data Flows
+The general flow of data is represented in figure
+\ref{fig:general-flow}
 
+\begin{figure}[ht!]
+\centerline{\includegraphics[width=1.3\textwidth]{dfd.png}}
+\caption{General dataflow of the web service}\label{fig:general-flow}
+\end{figure}
 
-#+CAPTION: Trust Levels
-#+ATTR_LaTeX: longtable align=|c|p{3cm}|p{0.7\textwidth}|
-|------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------|
-| *ID* | *Name*                               | *Description*                                                                                                                 |
-|------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------|
-|------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------|
-|    1 | Anonymous web user                   | A user who has connected to the application and is not logged                                                                 |
-|------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------|
-|    2 | User with valid credentials          | A user who is logged in the application using valid login credentials                                                         |
-|------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------|
-|    3 | Administrator with valid credentials | An administrator of the website who is logged in the application using valid credentials                                      |
-|------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------|
-|    4 | Server administrator                 | The administrator who has access to the server with a root account                                                            |
-|------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------|
-|    5 | Database web user                    | The database user who has access to the tables 'user', 'file' and 'share' in read and write, and to the 'admin' table in read |
-|------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------|
-|    6 | Database admin user                  | The database user who has access to the table 'admin' in read and write                                                       |
-|------+--------------------------------------+-------------------------------------------------------------------------------------------------------------------------------|
-
+# TODO: plus de diagrammes ou de texte pour expliquer les autres data
+# flows
+*** TODO Entry Points
+Entry points are described in the following table
 
 #+CAPTION: Entry points
-#+ATTR_LaTeX: longtable align=|c|c|p{0.6\textwidth}|p{3cm}|
+#+ATTR_LaTeX: longtable align=|c|p{3cm}|p{0.6\textwidth}|p{3cm}|
 |------+-----------------------+--------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------|
 | *ID* | *Name*                | *Description*                                                                                                            | *Trust Levels*                                                                  |
 |------+-----------------------+--------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------|
@@ -154,22 +235,45 @@ and by Microsoft[fn::http://msdn.microsoft.com/en-us/library/ms978527.aspx].
 |  1.4 | TODO                  |                                                                                                                          |                                                                                 |
 |------+-----------------------+--------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------|
 |------+-----------------------+--------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------|
-|    2 | Java application      |                                                                                                                          |                                                                                 |
-|------+-----------------------+--------------------------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------|
-
-#+CAPTION: Assets
-#+ATTR_LaTeX: longtable align=|c|c|p{0.8\textwidth}|c|
-|------+---------------------------------+----------------------------------------------------------------------------------+----------------|
-| *ID* | *Name*                          | *Description*                                                                    | *Trust Levels* |
-|------+---------------------------------+----------------------------------------------------------------------------------+----------------|
-|------+---------------------------------+----------------------------------------------------------------------------------+----------------|
-|    1 | Users                           | Assets relating to the users of the system                                       |                |
-|  1.1 | User Login Details              | The login credentials that a user will use to log into the application           |                |
-|    2 | Administrators                  | Assets relating to the administrators of the system                              |                |
-|  2.1 | Administarot Login Details      | The login credentials that a administrator will use to log into the application  |                |
-|    3 | System                          | Assets relating to the underlying system                                         |                |
-|  3.1 | Availability of the application | The application should be available 24 hours a day and can be accessed by anyone |                |
-|  3.2 | Ability to execute code         |                                                                                  |                |
-
-** Détermination et classement des risques
-** Détermination des contremesures
+*** DONE Exits Points
+Exits points are:
+  - The file list page, which displays the file name specified by the
+    file owner
+  - The menu of the application, which display the user's name
+** TODO Threats
+The tables that follows lists the existing threats.
+#+CAPTION: Threat: Malicious SQL data in user input
+#+ATTR_LaTeX: longtable align=|p{3cm}|p{0.8\textwidth}|
+|-------------------------+---|
+| *ID*                    | 1 |
+|-------------------------+---|
+| *Name*                  |   |
+|-------------------------+---|
+| *Description*           |   |
+|-------------------------+---|
+| *STRIDE classification* |   |
+|-------------------------+---|
+| *Notes*                 |   |
+|-------------------------+---|
+| *Entry points*          |   |
+|-------------------------+---|
+| *Assets*                |   |
+|-------------------------+---|
+| *Threat tree*           |   |
+|-------------------------+---|
+** TODO Vulnerabilities
+#+CAPTION: Vulnerability: SQL Injection
+#+ATTR_LaTeX: longtable align=|p{3cm}|p{0.8\textwidth}|
+|---------------------------+---|
+| *ID*                      | 1 |
+|---------------------------+---|
+| *Name*                    |   |
+|---------------------------+---|
+| *Description*             |   |
+|---------------------------+---|
+| *STRIDE classification*   |   |
+|---------------------------+---|
+| *DREAD rating*            |   |
+|---------------------------+---|
+| *Corresponding threat ID* |   |
+|---------------------------+---|
