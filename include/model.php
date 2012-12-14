@@ -363,7 +363,7 @@ class User extends Identifiable {
    * Add the database entry for a new file, given the filename.
    * The file should have previously been stored in
    * ../data/files/sha1(username)/sha1(filename), and its encryption key
-   * in the correspondingg .key file.
+   * in the corresponding .key file.
    * Return true on success.
    */
   public function add_file($name) {

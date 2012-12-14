@@ -3,10 +3,12 @@ public class CLI implements UI {
     private static final int SIGN = 1;
     /** Mode to check a signature */
     private static final int CHECK = 2;
+    /** Mode to encrypt a file */
+    private static final int ENCRYPT = 3;
     /** Mode to decrypt a file */
-    private static final int DECRYPT = 3;
+    private static final int DECRYPT = 4;
     /** Mode to give a new certificate, after revocation */
-    private static final int NEWCERT = 4;
+    private static final int NEWCERT = 5;
     /** Invalid mode */
     private static final int INVALID = -1;
 
@@ -42,6 +44,13 @@ public class CLI implements UI {
             mode = CHECK;
             fileIn = args[1];
             signature = args[2];
+            keyFile = args[3];
+        } else if ((args[0].equals("-e") || args[0].equals("--encrypt")) &&
+                   args.length == 4) {
+            /* Encryption */
+            mode = ENCRYPT;
+            fileIn = args[1];
+            fileOut = args[2];
             keyFile = args[3];
         } else if ((args[0].equals("-d") || args[0].equals("--decrypt")) &&
                    args.length == 4) {
@@ -92,6 +101,13 @@ public class CLI implements UI {
                 System.out.println("The signature matches the user's file");
             } else {
                 System.out.println("ERROR: the signature did not match the file. This file could be compromised. Please contact the sender of this file.");
+            }
+            break;
+        case ENCRYPT:
+            if (manager.encrypt(fileIn, fileOut, keyFile)) {
+                System.out.println("The file " + fileIn + " has been encrypted with success to the file " + fileOut);
+            } else {
+                System.out.println("ERROR: the file could not be encrypted");
             }
             break;
         case DECRYPT:

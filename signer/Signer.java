@@ -36,6 +36,13 @@ public class Signer {
      * Print the usage of this program
      */
     private static void usage() {
-        System.out.println("Usage: signer [-h|--help] [-s file signature] [-c file signature [certificate]] [-d file_in file_out keyfile] [-n new_certificate_file]");
+        System.out.println("Usage: signer OPTIONS...");
+        System.out.println("Available options:");
+        System.out.println("\t[-h|--help]\n\t\tDisplay this help");
+        System.out.println("\t[-s file signature]\n\t\tSign 'file', storing the signature in 'signature'");
+        System.out.println("\t[-c file signature [certificate]]\n\t\tCheck the signature of a file, with a given certificate (or the user's certificate if none specified");
+        System.out.println("\t[-e file_in file_out keyfile]\n\t\tEncrypt a file, storing the result in 'file_out' and the key used, encrypted with the user's public key in 'keyfile'");
+        System.out.println("\t[-d file_in file_out keyfile]\n\t\tDecrypt a file, storing the result in 'file_out', using the encrypted secret key from 'key_file'");
+        System.out.println("\t[-n new_certificate_file]\n\t\tAsk the user for a new certificate");
     }
 }

@@ -294,6 +294,16 @@ public class KeyManager {
     }
 
     /**
+     * Encrypt the file @param fileIn, storing the result in @param
+     * fileOut and the key used, encrypted with the public key,
+     * to @param keyFile.
+     * @return true on success, else false.
+     */
+    public boolean encrypt(String fileIn, String fileOut, String keyFile) {
+        return false; /* TODO */
+    }
+
+    /**
      * Decrypt the file @param fileIn with the key stored (encrypted)
      * in @param keyFile, and save the decrypted file to @param
      * fileOut.
