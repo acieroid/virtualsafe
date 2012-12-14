@@ -405,7 +405,46 @@ public class KeyManager {
             bytesToFile(data, fileOut);
         } catch (Exception e) {
             System.out.println("ERROR: cannot decrypt the file: " + e.getMessage());
-            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Compute the key for user B if A wants to share a file with
+     * B. Read B's public key from @param stream. Read the key
+     * from @param keyIn and store the encrypted key for B in @param
+     * keyOut.
+     * @return true on success, else false.
+     */
+    public boolean share(String keyIn, String keyOut, InputStream stream) {
+        try {
+            /* Read the encrypted key */
+            byte[] data = fileToBytes(keyIn);
+
+            /* Decrypt the key */
+            Cipher cipher = Cipher.getInstance(ASYMMETRIC_ENCRYPTION_METHOD);
+            cipher.init(Cipher.DECRYPT_MODE, decKey);
+            data = cipher.doFinal(data);
+
+            /* Read B's public key */
+            Certificate encKeyB = parseCertificate(stream);
+            if (encKeyB == null) {
+                System.out.println("ERROR: cannot read the other user's public key");
+                return false;
+            }
+
+            /* Encrypt the key */
+            cipher = Cipher.getInstance(ASYMMETRIC_ENCRYPTION_METHOD);
+            cipher.init(Cipher.ENCRYPT_MODE, encKeyB.getPublicKey());
+            data = cipher.doFinal(data);
+
+            /* Save the encrypted key */
+            FileOutputStream out = new FileOutputStream(keyOut);
+            out.write(data);
+            out.close();
+        } catch (Exception e) {
+            System.out.println("ERROR: cannot share the file: " + e.getMessage());
             return false;
         }
         return true;

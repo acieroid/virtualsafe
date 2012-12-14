@@ -9,6 +9,8 @@ public class CLI implements UI {
     private static final int DECRYPT = 4;
     /** Mode to give a new certificate, after revocation */
     private static final int NEWCERT = 5;
+    /** Mode to share a file */
+    private static final int SHARE = 6;
     /** Invalid mode */
     private static final int INVALID = -1;
 
@@ -61,7 +63,13 @@ public class CLI implements UI {
             keyFile = args[3];
         } else if ((args[0].equals("-n") || args[0].equals("--newcert")) &&
                    args.length == 1) {
+            /* New certificate */
             mode = NEWCERT;
+        } else if (args[0].equals("--share") && args.length == 3) {
+            /* Share a file */
+            mode = SHARE;
+            fileIn = args[1];
+            fileOut = args[2];
         } else {
             mode = INVALID;
         }
@@ -123,6 +131,14 @@ public class CLI implements UI {
                 System.out.println("Thank you, your new certificate has been saved");
             } else {
                 System.out.println("ERROR: cannot parse the certificate, please check if you correctly copied it");
+            }
+            break;
+        case SHARE:
+            System.out.println("Please paste the other user's public key:");
+            if (manager.share(fileIn, fileOut, System.in)) {
+                System.out.println("The key has been saved to " + fileOut + ". Please upload it to the web service");
+            } else {
+                System.out.println("ERROR: error when sharing the file");
             }
             break;
         default:
