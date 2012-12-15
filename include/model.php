@@ -411,6 +411,7 @@ class User extends Identifiable {
    * ../data/files/sha256(username)/sha256(filename), and its encryption key
    * in the corresponding .key file.
    * Return true on success.
+   * TODO: check if the file name is valid (no exotic characters, or " for example)
    */
   public function add_file($name) {
     /* Check if the file exists */
@@ -456,6 +457,18 @@ class User extends Identifiable {
     }
 
     return true;
+  }
+
+  /**
+   * Check if a user owns a file
+   */
+  public function has_file($name) {
+    $stmt = $this->pdo->prepare('select * from file where user_id = :id and filename = :name');
+    $stmt->bindValue(':id', $this->id);
+    $stmt->bindValue(':name', $name);
+    $stmt->execute();
+    $res = $stmt->fetchAll();
+    return count($res) == 1;
   }
 
   /**
