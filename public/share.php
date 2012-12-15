@@ -64,7 +64,7 @@ if (!session_has_user()) {
 } else if (isset($_GET['filename'])) {
   ?>
   <form method="post" action="share.php?filename=<?php echo $_GET['filename']; ?>">
-  <p><label for="user">User to share with: </label><input type="tex" name="user" id="user"/></p>
+  <p><label for="user">User to share with: </label><input type="text" name="user" id="user"/></p>
   <p><input type="submit" value="Share"/>
   </form>
   <?php
