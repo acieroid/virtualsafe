@@ -109,6 +109,14 @@ The script =mysql_secure_installation= provided with MySQL can be
 used to strengthen the default configuration. Among the things it
 does, it changes the root password, removes anonymous users, disallow
 remote root login, remove the test databases, ...
+* Directories
+The following directories should also be created, and be owned by the
+web user (the user with which Apache is launched, =http= or =www= on
+most systems):
+#+BEGIN_SRC text
+# mkdir -p data/{certificates,pubkeys,files}
+# chown -R www data/ # if apache is launched by the www user
+#+END_SRC
 * Java Application
 The Java application requires Bouncy
 Castle[fn::=http://www.bouncycastle.org/java.html=] to be able to read
@@ -120,4 +128,3 @@ application is provided in the directory =signer/=. Thus, for
 launching the Java application, one should just do:
 #+BEGIN_SRC text
 java -jar 
-
