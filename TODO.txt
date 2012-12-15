@@ -7,13 +7,12 @@ Done:
   - Java application: saves the private key and the certificate and
     can sign files, or decrypt encrypted files
   - User upload page
-
-Started:
   - User file list page
   - User download page
+  - User share file page
 
 To do:
-  - User share file page
+  - Unshare pages (unshare.php & unshare_shared.php)
   - Threat model (for the report), see:
     - http://msdn.microsoft.com/en-us/library/ms978527.aspx
     - http://msdn.microsoft.com/en-us/library/ff648644.aspx
