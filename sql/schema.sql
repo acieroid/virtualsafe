@@ -25,7 +25,7 @@ create table user(
        primary key(id));
 
 create table file(
-       id integer not null auto_increment
+       id integer not null auto_increment,
        -- the owner of this file
        user_id integer,
        -- the name of the file (user point of view)

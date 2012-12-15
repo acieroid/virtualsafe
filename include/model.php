@@ -246,6 +246,16 @@ class User extends Identifiable {
   }
 
   /**
+   * Return the certificate file of this user
+   */
+  public function get_certificate() {
+    $f = fopen($this->get_certificate_file(), 'r');
+    $cert = fread($f, 8192);
+    fclose($f);
+    return openssl_get_publickey($cert);
+  }
+
+  /**
    * Return the path to the public encryption key of this user
    */
   public function get_pubkey_file() {
@@ -256,28 +266,35 @@ class User extends Identifiable {
    * Return the public key of this user
    */
   public function get_pubkey() {
-    return openssl_pkey_get_public(get_pubkey_file());
+    return openssl_pkey_get_public($this->get_pubkey_file());
+  }
+
+  /**
+   * Return the directory where the files of this user are stored
+   */
+  public function get_files_directory() {
+    return '../data/files' . hash_secure($this->name);
   }
 
   /**
    * Return the path to a file given its name
    */
   public function get_file_path($name) {
-    return '../data/files/' . hash_secure($this->name) . '/' . hash_secure($name);
+    return $this->get_files_directory() . hash_secure($name);
   }
 
   /**
    * Return the path to a signature of a file given its name
    */
   public function get_signature_path($name) {
-    return get_file_path($name) . '.sign';
+    return $this->get_file_path($name) . '.sign';
   }
 
   /**
    * Return the path to the key of a file given its name
    */
   public function get_key_path($name) {
-    return get_file_path($name) . '.key';
+    return $this->get_file_path($name) . '.key';
   }
 
   /**
@@ -285,7 +302,7 @@ class User extends Identifiable {
    * Return true on success, false on failure.
    */
   public function change_password($old_password, $password) {
-    if (!self::password_valid($password) || !$this->identify($this->name,$old_password)) {
+    if (!self::password_valid($password) || !$this->identify($this->name, $old_password)) {
       return false;
     }
 
@@ -311,12 +328,17 @@ class User extends Identifiable {
     if (!file_exists($source)) {
       return false;
     }
-    $dest = get_file_path($filename);
-    $keydest = get_key_path($filename);
+    /* Create the destination directory */
+    if (!file_exists($this->get_files_directory())) {
+      mkdir($this->get_files_directory());
+    }
+
+    $dest = $this->get_file_path($filename);
+    $keydest = $this->get_key_path($filename);
     $key = generate_random_key();
 
     /* check if the destination already exists */
-    if (file_exists($destination)) {
+    if (file_exists($dest)) {
       return false;
     }
 
@@ -349,9 +371,9 @@ class User extends Identifiable {
     }
 
     $content = file_get_contents($file);
-    $signContent = file_get_contents($signature);
+    $signContent = hex2bin(file_get_contents($signature));
 
-    return openssl_verify($content, $signContent, $this->get_pubkey()) == 1;
+    return openssl_verify($content, $signContent, $this->get_certificate()) == 1;
   }
 
   /**
@@ -363,7 +385,7 @@ class User extends Identifiable {
     }
 
     $content = file_get_contents($signature);
-    if (file_put_contents(get_signature_path($filename),$content) === false) {
+    if (file_put_contents($this->get_signature_path($filename),$content) === false) {
       return false;
     }
 
@@ -378,7 +400,7 @@ class User extends Identifiable {
    * Return true on success.
    */
   public function add_file($name) {
-    $stmt = $this->pdo->prepare('insert into file(user_id, filename) values (:id, :name');
+    $stmt = $this->pdo->prepare('insert into file(user_id, filename) values (:id, :name)');
     $stmt->bindValue(':id', $this->id);
     $stmt->bindValue(':name', $name);
     return $stmt->execute();
@@ -389,13 +411,13 @@ class User extends Identifiable {
    * file. Return true on success.
    */
   public function delete_file($filename) {
-    if (!file_exists(get_file_path($filename))) {
+    if (!file_exists($this->get_file_path($filename))) {
       return false;
     }
 
-    if (!unlink(get_file_path($filename)) ||
-        !unlink(get_signature_path($filename)) ||
-        !unlink(get_key_path($filename))) {
+    if (!unlink($this->get_file_path($filename)) ||
+        !unlink($this->get_signature_path($filename)) ||
+        !unlink($this->get_key_path($filename))) {
       return false;
     }
 

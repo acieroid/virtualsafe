@@ -48,4 +48,12 @@ function generate_salt() {
     return str2hex(mcrypt_create_iv($size, MCRYPT_DEV_URANDOM));
 }
 
+/**
+ * Generate 256-bit a random key
+ */
+function generate_random_key() {
+  $size = mcrypt_get_iv_size(MCRYPT_CAST_256, MCRYPT_MODE_CFB);
+  return mcrypt_create_iv($size, MCRYPT_DEV_URANDOM);
+}
+
 ?>
