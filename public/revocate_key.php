@@ -15,7 +15,7 @@ if (!session_has_user()) {
 } else if (isset($_POST['confirmation'])) {
   if (CSRF::check($_POST['csrf'])) {
     $user = session_get_user();
-    /* Remove this user's certificate */
+    /* Remove this user's public key */
     $pubkey = $user->get_pubkey_file();
     if (!unlink($pubkey)) {
       die('Cannot remove the public key');
@@ -36,14 +36,14 @@ if (!session_has_user()) {
     }
 
     /* Create a new key pair */
-    $cert = new Certificate($user);
-    $cert->save($user->get_certificate_file());
+    $key = new Certificate($user);
+    $key->save($user->get_pubkey_file());
 
-    /* Display the new certificate */
+    /* Display the new key pair */
     ?>
     <p>Key pair revocated. Please launch the program with <pre>java -jar signer.jar -k</pre> and paste this:</p>
     <textarea readonly="readonly" cols="70" rows="85"><?php
-    echo $cert->certstr . "\n" . $cert->privkeystr;
+    echo $key->certstr . "\n" . $key->privkeystr;
     ?></textarea></p>
     <?php
   } else {
