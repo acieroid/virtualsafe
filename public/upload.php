@@ -42,6 +42,7 @@ if (!session_has_user()) {
 else {
   $token = CSRF::generate();
   ?>
+  <p>To generate the signature, run <pre>java -jar signer.jar -s file file.sign</pre>, and <pre>file.sign</pre> will contain the signature of <pre>file</pre>.</p>
   <form method="post" action="upload.php" enctype="multipart/form-data">
   <p><label for="file">File to upload: </label><input type="file" name="file" id="file"/></p>
   <p><label for="signature">Signature: </label><input type="file" name="signature" id="signature"/></p>

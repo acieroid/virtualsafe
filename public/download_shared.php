@@ -42,6 +42,46 @@ if (!session_has_user()) {
     include('menu.php');
     echo '<p>The key file does not exists or this file has not been shared with you</p>';
   }
+} else if (isset($_GET['name'], $_GET['user'], $_GET['signature'])) {
+  /* Download the signature */
+  $user = session_get_user();
+  $owner = User::find(urldecode($_GET['user']));
+  if ($owner == null) {
+    die('No such user');
+  }
+  $name = urldecode($_GET['name']);
+  $signature = $owner->get_signature_path($name);
+
+  if ($user->has_access($name) && file_exists($signature)) {
+    header('Content-Description: File Transfer');
+    header('Content-Disposition: attachment; filename="' . $name . '.sign"');
+    header("Content-type: application/octet-stream");
+    header('Content-Transfer-Encoding: binary');
+    readfile($key);
+  } else {
+    include('menu.php');
+    echo '<p>The signature file does not exists or this file has not been shared with you</p>';
+  }
+} else if (isset($_GET['name'], $_GET['certificate'])) {
+  /* Download the certificate */
+  $user = session_get_user();
+  $owner = User::find(urldecode($_GET['user']));
+  if ($owner == null) {
+    die('No such user');
+  }
+  $name = urldecode($_GET['name']);
+  $certificate = $owner->get_certificate_file($name);
+
+  if ($user->has_access($name) && file_exists($certificate)) {
+    header('Content-Description: File Transfer');
+    header('Content-Disposition: attachment; filename="' . $name . '.crt"');
+    header("Content-type: application/octet-stream");
+    header('Content-Transfer-Encoding: binary');
+    readfile($key);
+  } else {
+    include('menu.php');
+    echo '<p>The certificate file does not exists or this file has not been shared with you</p>';
+  }
 } else if (isset($_GET['name'], $_GET['user'])) {
   /* Show the URL for downloading the file and the key */
   include('menu.php');
@@ -51,7 +91,10 @@ if (!session_has_user()) {
   <ul>
   <li><a href="download.php?name=<?php echo $_GET['name']; ?>&user=<?php echo $_GET['user']; ?>&encrypted">The encrypted file</a></li>
   <li><a href="download.php?name=<?php echo $_GET['name']; ?>&user=<?php echo $_GET['user']; ?>&key">The key</a></li>
+  <li><a href="download.php?name=<?php echo $_GET['name']; ?>&user=<?php echo $_GET['user']; ?>&signature">The signature</a></li>
+  <li><a href="download.php?name=<?php echo $_GET['name']; ?>&user=<?php echo $_GET['user']; ?>&certificate">The certificate</a></li>  
   </ul>
+  <p>Then run <pre>java -jar signer.jar -d file_in key.key file_out</pre> to decrypt the file, and <pre>java -jar signer.jar -c file_out signature.sign certificate.crt</pre> to check that the file matches the signature.</p>
 <?php
 } else {
   echo '<p>Invalid request</p>';

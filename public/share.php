@@ -42,6 +42,7 @@ if (!session_has_user()) {
   $dest_user = User::find($_POST['user']);
   if ($dest_user != null) {
     /* The destination user is found */
+    echo '<p>Launch the program with <pre>java -jar signer.jar --share key key.out</pre> where key is the file given below, and paste the public key. Then, upload <pre>key.out</pre></p>';
     
     /* Add a link to download the key */
     echo '<p>Download the <a href="download.php?name=' . $_GET['filename'] . '&key">key</a></p>';

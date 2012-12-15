@@ -39,7 +39,7 @@ if (!session_has_user()) {
 
     /* Display the new certificate */
     ?>
-    <p>Certificate revocated. Please copy the new certificate into the program:</p>
+    <p>Certificate revocated. Please launch the program with <pre>java -jar signer.jar -n</pre> and paste this:</p>
     <textarea readonly="readonly" cols="70" rows="85"><?php
     echo $cert->certstr . "\n" . $cert->privkeystr;
     ?></textarea></p>

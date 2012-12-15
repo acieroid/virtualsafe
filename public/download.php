@@ -20,7 +20,7 @@ if (!session_has_user()) {
     readfile($file);
   } else {
     include('menu.php');
-    echo '<p>The file ' . $file . ' does not exists</p>';
+    echo '<p>The file does not exists or you do not own this file</p>';
   }
 } else if (isset($_GET['name'], $_GET['key'])) {
   /* Download the key */
@@ -36,7 +36,23 @@ if (!session_has_user()) {
     readfile($key);
   } else {
     include('menu.php');
-    echo '<p>The key file does not exists</p>';
+    echo '<p>The key file does not exists or you do not own this file</p>';
+  }
+} else if (isset($_GET['name'], $_GET['signature'])) {
+  /* Download the signature */
+  $user = session_get_user();
+  $name = urldecode($_GET['name']);
+  $signature = $user->get_signature_path($name);
+
+  if ($user->has_file($name) && file_exists($signature)) {
+    header('Content-Description: File Transfer');
+    header('Content-Disposition: attachment; filename="' . $name . '.sign"');
+    header("Content-type: application/octet-stream");
+    header('Content-Transfer-Encoding: binary');
+    readfile($key);
+  } else {
+    include('menu.php');
+    echo '<p>The signature file does not exists or you do not own this file</p>';
   }
 } else if (isset($_GET['name'])) {
   /* Show the URL for downloading the file and the key */
@@ -47,7 +63,9 @@ if (!session_has_user()) {
   <ul>
   <li><a href="download.php?name=<?php echo $_GET['name']; ?>&encrypted">The encrypted file</a></li>
   <li><a href="download.php?name=<?php echo $_GET['name']; ?>&key">The key</a></li>
+  <li><a href="download.php?name=<?php echo $_GET['name']; ?>&signature">The signature</a></li>
   </ul>
+  <p>Then run <pre>java -jar signer.jar -d file_in key.key file_out</pre> to decrypt the file, and <pre>java -jar signer.jar -c file_out signature.sign</pre> to check that the file matches the signature.</p>
 <?php
 } else {
   echo '<p>Invalid request</p>';
