@@ -12,7 +12,7 @@ class Certificate {
    */
   public function __construct($user) {
     $config = array('config' => '/etc/ssl/openssl.cnf',
-                    'digest_alg' => 'sha1',
+                    'digest_alg' => 'sha256',
                     'private_key_bits' => 2048,
                     'private_key_type' => OPENSSL_KEYTYPE_RSA);
 

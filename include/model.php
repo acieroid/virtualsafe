@@ -242,14 +242,14 @@ class User extends Identifiable {
    * Return the path to the certificate file of this user
    */
   public function get_certificate_file() {
-    return '../data/certificates/' . sha1($this->name) . '.crt';
+    return '../data/certificates/' . hash_secure($this->name) . '.crt';
   }
 
   /**
    * Return the path to the public encryption key of this user
    */
   public function get_pubkey_file() {
-    return '../data/pubkeys/' . sha1($this->name) . '.key';
+    return '../data/pubkeys/' . hash_secure($this->name) . '.key';
   }
 
   /**
@@ -263,7 +263,7 @@ class User extends Identifiable {
    * Return the path to a file given its name
    */
   public function get_file_path($name) {
-    return '../data/files/' . sha1($this->name) . '/' . sha1($name);
+    return '../data/files/' . hash_secure($this->name) . '/' . hash_secure($name);
   }
 
   /**
@@ -373,7 +373,7 @@ class User extends Identifiable {
   /**
    * Add the database entry for a new file, given the filename.
    * The file should have previously been stored in
-   * ../data/files/sha1(username)/sha1(filename), and its encryption key
+   * ../data/files/sha256(username)/sha256(filename), and its encryption key
    * in the corresponding .key file.
    * Return true on success.
    */

@@ -10,12 +10,12 @@
 Unsecure cryptographic methods (MD5, DES, ...) were avoided, and the
 following methods were chosen:
   - AES-256 with a random IV for encrypting documents
-  - SHA1 as a cryptographic hash function
+  - SHA256 as a cryptographic hash function
   - RSA with 2048-bit keys for signing
 
 In the rest of this document, when we refer to /encrypt something/, it
 means encrypting it with AES-256 with a random IV. When we refer to
-/hash something/, it means hashing it with SHA1. When we refer to
+/hash something/, it means hashing it with SHA256. When we refer to
 /sign something/, it refers to sign it with RSA using 2048-bit keys
 and SHA1 as the hash function.
 ** DONE Securing the data on the server

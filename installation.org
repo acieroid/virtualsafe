@@ -25,7 +25,7 @@ The next sections will describe the configuration of those softwares.
 * Web Service
 ** SSL
 First of all, the server's certificate should be created:
-#+BEGIN_SRC
+#+BEGIN_SRC text
 mkdir /etc/ssl/{private,cert}
 chmod 0700 /etc/ssl/{private,cert}
 openssl req -x509 -nodes -days 365 -out /etc/ssl/cert/server.crt -keyout /etc/ssl/private/server.key -newkey rsa:2048
@@ -39,7 +39,7 @@ be for example be saved in =conf/extra/httpd-vhosts.conf= in the
 configuration directory of Apache, and the line =Include
 conf/extra/httpd-vhosts.conf= should then be added to Apache's main
 configuration file (=httpd.conf=).
-#+BEGIN_SRC
+#+BEGIN_SRC text
 NameVirtualHost *:443
 <VirtualHost *:443>
      ServerName cours.awesom.eu
@@ -63,7 +63,7 @@ The following configuration lines are optional, but should be done on
 the production server to ensure maximal security. They can be put in
 Apache's main configuration file (=httpd.conf=).
 
-#+BEGIN_SRC
+#+BEGIN_SRC text
 # Don't show Apache's version
 ServerSignature Off
 ServerTokens Prod
@@ -77,17 +77,47 @@ LimitRequestBody 1048576 # 1Mo
 PHP should be activated in Apache, so the following line should be
 added to Apache's main configuration file:
 
-#+BEGIN_SRC
+#+BEGIN_SRC text
 AddType application/x-httpd-php .php
 #+END_SRC
 
 The modules used by the web service should also be activated in PHP's =php.ini=:
-#+BEGIN_SRC
+#+BEGIN_SRC text
 extension=mcrypt.so
-extension=mysqli.so
-extension=mysql.so
 extension=openssl.so
 extension=pdo_mysql.so
 #+END_SRC
 * Database
+After MySQL have been installed, we have to create the users and
+tables needed. Change the passwords of the MySQL in the file
+=sql/users.sql=. Then, load the files in =.sql= in the following way:
+#+BEGIN_SRC text
+# cd sql/
+# mysql -u root -p
+> source database.sql
+> source users.sql
+> source schema.sql
+> source test_data.sql # optional, add some users and admin
+#+END_SRC
+** Admin creation
+It is not possible to add an administrator from the web
+application. The 'admin' database user should do it directly in
+SQL. A convenience script that creates the line to add is available
+in =sql/new_user.sh= and take the admin name as argument.
+*** Strengthening the default MySQL configuration
+The script =mysql_secure_installation= provided with MySQL can be
+used to strengthen the default configuration. Among the things it
+does, it changes the root password, removes anonymous users, disallow
+remote root login, remove the test databases, ...
 * Java Application
+The Java application requires Bouncy
+Castle[fn::=http://www.bouncycastle.org/java.html=] to be able to read
+keys formatted with the PEM format. On most Linux distribution, it is
+available in the package =bcprov=.
+
+For convenience, a =.jar= containing bouncy castle and the Java
+application is provided in the directory =signer/=. Thus, for
+launching the Java application, one should just do:
+#+BEGIN_SRC text
+java -jar 
+

@@ -32,7 +32,7 @@ class CSRF {
    * Generate a random token
    */
   public static function generate() {
-    $token = sha1(str2hex(generate_salt()));
+    $token = hash_secure(str2hex(generate_salt()));
     $_SESSION['csrf'] = $token;
     return new CSRFToken($token);
   }
