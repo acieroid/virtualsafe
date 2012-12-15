@@ -13,7 +13,7 @@ if (!session_has_user()) {
   $filenames = $user->list_owned_files();
   echo '<ul>';
   foreach($filenames as $f) {
-    echo '<li>' . $f . ': <a href="download.php?name=' . urlencode($f) . '">download</a> - <a href="share.php?name=' .urlencode($f) . '">share</a></li>';
+    echo '<li>' . $f . ': <a href="download.php?name=' . urlencode($f) . '">download</a> - <a href="share.php?name=' . urlencode($f) . '">share</a> - <a href="delete.php?name=' . urlencode($f) . '">delete</a></li>';
   }
   echo '</ul>';
 }
