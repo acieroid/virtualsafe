@@ -43,7 +43,7 @@ public class KeyManager {
     private static final String SIGNATURE_METHOD = "SHA1withRSA";
     private static final String ASYMMETRIC_ENCRYPTION_METHOD = "RSA";
     private static final String ENCRYPTION_ALGORITHM = "AES";
-    private static final String ENCRYPTION_METHOD = "AES/CBC/NoPadding";
+    private static final String ENCRYPTION_METHOD = "AES/CBC/PKCS5Padding";
     private static final int ENCRYPTION_KEYSIZE = 256;
     /** The directory where the keys are located */
     private String dir;

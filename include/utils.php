@@ -1,18 +1,6 @@
 <?php
 
 /**
- * Convert a string to its hexadecimal representation
- * TODO: it drops the 0 (eg. '12' . '0A' -> '12A' thanks to PHP)
- */
-function str2hex($string) {
-  $hex='';
-  for ($i=0; $i < strlen($string); $i++) {
-    $hex .= dechex(ord($string[$i]));
-  }
-  return $hex;
-}
-
-/**
  * Hash a string using a secure hash algorithm
  */
 function hash_secure($str) {
@@ -21,15 +9,22 @@ function hash_secure($str) {
 
 /**
  * Encrypt a string using a secure symmetric algorithm given a
- * key. Return the encrypted result. Note that it uses
- * MCRYPT_RIJNDAEL_128, which means 128-bit block size, and does not
- * mean nothing about the key (which can be set to 256-bit). AES256 is
- * Rijndael-128 with 256-bit key
+ * key. Return the encrypted result.
  */
 function encrypt_secure($str, $key) {
-  $iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_CBC);
-  $iv = mcrypt_create_iv($iv_size, MCRYPT_RAND);
+  /* create the IV */
+  $iv_size = openssl_cipher_iv_length('aes-256-cbc');
+  $iv = openssl_random_pseudo_bytes($iv_size);
+  /* encrypt with mcrypt instead of openssl, because openssl seems to
+     do weird things with the padding. However, since mcrypt does not
+     support AES, but does support rijndael, we have to do a bit of
+     manipulation: add the PKCS#5 padding ourselve, and specify the
+     block size (128-bit) */
+  $block_size = mcrypt_get_block_size(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_CBC);
+  $padding = $block_size - (strlen($str) % $block_size);
+  $str .= str_repeat(chr($padding), $padding);
   $output = mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $key, $str, MCRYPT_MODE_CBC, $iv);
+  /* $output = openssl_encrypt($str, 'aes-256-cbc', $key, true, $iv); */ 
   return $iv . $output;
 }
 
@@ -46,20 +41,20 @@ function encrypt_asym_secure($str, $key) {
 
 /**
  * Generate a random salt
+ * TODO: use openssl_random_pseudo_bytes
  */
 function generate_salt() {
-    /* generate the salted password hash */
-    $size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_CBC);
-    /* XXX: MCRYPT_DEV_RANDOM provides more security but is SLOW */
-    return str2hex(mcrypt_create_iv($size, MCRYPT_DEV_URANDOM));
+  $size = 16;
+  return bin2hex(openssl_random_pseudo_bytes($size));
 }
 
 /**
  * Generate 256-bit a random key
+ * TODO: use openssl_random_pseudo_bytes
  */
 function generate_random_key() {
-  $size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_CBC);
-  return mcrypt_create_iv($size, MCRYPT_DEV_URANDOM);
+  $size = openssl_cipher_iv_length('aes-256-cbc');
+  return openssl_random_pseudo_bytes($size);
 }
 
 ?>

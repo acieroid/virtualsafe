@@ -150,7 +150,7 @@ class User extends Identifiable {
    * Check if a filename is valid
    */
   public static function filename_valid($name) {
-    return strlen($file) < 100 && preg_match("/^[a-z0-9 \.-]+$/i", $name) != 0;
+    return strlen($name) < 100 && preg_match("/^[a-z0-9 \.-]+$/i", $name) != 0;
   }
 
   /**
