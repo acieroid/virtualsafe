@@ -6,13 +6,17 @@ require_once('../include/sessions.php');
 
 if (!session_has_user()) {
   echo '<p>Please <a href="signin.php">sign in</a></p>';
-} else if (isset($_GET['name'], $_GET['encrypted'])) {
-  /* Download the encrypted file */
+} else if (isset($_GET['name'], $_GET['user'], $_GET['encrypted'])) {
+  /* Download the encrypted file. It is stored in the owner's directory */
   $user = session_get_user();
+  $owner = User::find(urldecode($_GET['user']));
+  if ($owner == null) {
+    die('No such user');
+  }
   $name = urldecode($_GET['name']);
-  $file = $user->get_file_path($name);
+  $file = $owner->get_file_path($name);
 
-  if ($user->has_file($name) && file_exists($file)) {
+  if ($user->has_access($owner, $name) && file_exists($file)) {
     header('Content-Description: File Transfer');
     header('Content-Disposition: attachment; filename="' . $name . '"');
     header("Content-type: application/octet-stream");
@@ -20,10 +24,10 @@ if (!session_has_user()) {
     readfile($file);
   } else {
     include('menu.php');
-    echo '<p>The file ' . $file . ' does not exists</p>';
+    echo '<p>The file ' . $file . ' does not exists or you cannot access it</p>';
   }
-} else if (isset($_GET['name'], $_GET['key'])) {
-  /* Download the key */
+} else if (isset($_GET['name'], $_GET['user'], $_GET['key'])) {
+  /* Download the key. It is stored in the user's directory */
   $user = session_get_user();
   $name = urldecode($_GET['name']);
   $key = $user->get_key_path($name);
@@ -36,17 +40,17 @@ if (!session_has_user()) {
     readfile($key);
   } else {
     include('menu.php');
-    echo '<p>The key file does not exists</p>';
+    echo '<p>The key file does not exists or this file has not been shared with you</p>';
   }
-} else if (isset($_GET['name'])) {
+} else if (isset($_GET['name'], $_GET['user'])) {
   /* Show the URL for downloading the file and the key */
   include('menu.php');
 ?>
 
   <p>Download the following files:</p>
   <ul>
-  <li><a href="download.php?name=<?php echo $_GET['name']; ?>&encrypted">The encrypted file</a></li>
-  <li><a href="download.php?name=<?php echo $_GET['name']; ?>&key">The key</a></li>
+  <li><a href="download.php?name=<?php echo $_GET['name']; ?>&user=<?php echo $_GET['user']; ?>&encrypted">The encrypted file</a></li>
+  <li><a href="download.php?name=<?php echo $_GET['name']; ?>&user=<?php echo $_GET['user']; ?>&key">The key</a></li>
   </ul>
 <?php
 } else {

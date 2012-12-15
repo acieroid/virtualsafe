@@ -193,6 +193,18 @@ class User extends Identifiable {
   }
 
   /**
+   * Find an user from its username. If no user was found, return null.
+   */
+  public static function find($name) {
+    $user = new User();
+    $user->name = $name;
+    if (!$user->fill_fields()) {
+      return null;
+    }
+    return $user;
+  }
+
+  /**
    * Deletes an user
    * Return true of success, false on failure.
    */
@@ -474,6 +486,20 @@ class User extends Identifiable {
   public function has_file($name) {
     $stmt = $this->pdo->prepare('select * from file where user_id = :id and filename = :name');
     $stmt->bindValue(':id', $this->id);
+    $stmt->bindValue(':name', $name);
+    $stmt->execute();
+    $res = $stmt->fetchAll();
+    return count($res) == 1;
+  }
+
+  /**
+   * Check if a user has access to a file (ie. it is shared by the
+   * owner with him)
+   */
+  public function has_access($owner, $name) {
+    $stmt = $this->pdo->prepare('select * from share where owner_id = :owner_id and user_id = :id and file_id in (select id from file where owner_id = :owner_id and filename = :name)');
+    $stmt->bindValue(':id', $this->id);
+    $stmt->bindValue(':owner_id', $owner->id);
     $stmt->bindValue(':name', $name);
     $stmt->execute();
     $res = $stmt->fetchAll();
