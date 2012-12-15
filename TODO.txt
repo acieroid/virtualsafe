@@ -4,16 +4,15 @@ Done:
   - User certificate download page
   - User password modification page
   - User revocation page
-
-Started:
   - Java application: saves the private key and the certificate and
     can sign files, or decrypt encrypted files
-     - http://oreilly.com/catalog/javacrypt/chapter/ch06.html#24537
-     - http://www.herongyang.com/JDK/KeyStore-Read-in-Certificate-with-CertificateFactory.html
+  - User upload page
+
+Started:
+  - User file list page
+  - User download page
 
 To do:
-  - User upload page
-  - User file list page
   - User share file page
   - Threat model (for the report), see:
     - http://msdn.microsoft.com/en-us/library/ms978527.aspx
