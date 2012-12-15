@@ -348,7 +348,6 @@ class User extends Identifiable {
     $dest = $this->get_file_path($filename);
     $keydest = $this->get_key_path($filename);
     $key = generate_random_key();
-    echo 'Key: ' . str2hex($key);
 
     /* check if the destination already exists */
     if (file_exists($dest)) {

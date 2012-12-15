@@ -2,6 +2,7 @@
 
 /**
  * Convert a string to its hexadecimal representation
+ * TODO: it drops the 0 (eg. '12' . '0A' -> '12A' thanks to PHP)
  */
 function str2hex($string) {
   $hex='';
@@ -28,7 +29,6 @@ function hash_secure($str) {
 function encrypt_secure($str, $key) {
   $iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_CBC);
   $iv = mcrypt_create_iv($iv_size, MCRYPT_RAND);
-  echo 'IV: ' . str2hex($iv);
   $output = mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $key, $str, MCRYPT_MODE_CBC, $iv);
   return $iv . $output;
 }
@@ -38,11 +38,10 @@ function encrypt_secure($str, $key) {
  * key. Return the encrypted result, or null on failure.
  */
 function encrypt_asym_secure($str, $key) {
-  if (openssl_public_encrypt($str, $output, $key)) {
-    return $output;
-  } else {
-    return null;
+  if (openssl_public_encrypt($str, $output, $key) === false) {
+    throw new Exception('Cannot encrypt data: ' . openssl_error_string());
   }
+  return $output;
 }
 
 /**
