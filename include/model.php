@@ -529,7 +529,6 @@ class User extends Identifiable {
                                 'username' => $f['name']));
     }
     return $result;
-    return array();
   }
 }
 
