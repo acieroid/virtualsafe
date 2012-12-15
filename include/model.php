@@ -367,7 +367,7 @@ class User extends Identifiable {
     $encryptedKey = encrypt_asym_secure($key, $this->get_pubkey());
 
     /* save the encrypted key */
-    if (!file_put_contents($keydest, $encryptedKey) === false) {
+    if (file_put_contents($keydest, $encryptedKey) === false) {
       return false;
     }
 
@@ -411,9 +411,20 @@ class User extends Identifiable {
    * ../data/files/sha256(username)/sha256(filename), and its encryption key
    * in the corresponding .key file.
    * Return true on success.
-   * TODO: check if the file does not already exists
    */
   public function add_file($name) {
+    /* Check if the file exists */
+    $stmt = $this->pdo->prepare('select * from file where user_id = :id and filename = :name');
+    $stmt->bindValue(':id', $this->id);
+    $stmt->bindValue(':name', $name);
+    $stmt->execute();
+    $res = $stmt->fetchAll();
+    if (count($res) != 0) {
+      /* Already a file with that name, rejected */
+      return false;
+    }
+
+    /* Add the file */
     $stmt = $this->pdo->prepare('insert into file(user_id, filename) values (:id, :name)');
     $stmt->bindValue(':id', $this->id);
     $stmt->bindValue(':name', $name);

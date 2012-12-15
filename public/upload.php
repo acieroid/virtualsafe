@@ -18,12 +18,13 @@ if (!session_has_user()) {
       $user = session_get_user();
       $fileName = $_FILES['file']['name'];
       if ($user->check_signature($_FILES['file']['tmp_name'], $_FILES['signature']['tmp_name'])) {
-        $user->encrypt_file($_FILES['file']['tmp_name'], $fileName);
-        $user->save_signature($_FILES['signature']['tmp_name'], $fileName);
-        $user->add_file($fileName);
-        echo '<p>File has been added</p>';
-        while ($msg = openssl_error_string())
-          echo $msg . "<br />\n";
+        if ($user->add_file($fileName) &&
+            $user->encrypt_file($_FILES['file']['tmp_name'], $fileName) &&
+            $user->save_signature($_FILES['signature']['tmp_name'], $fileName)) {
+          echo '<p>File has been added</p>';
+        } else {
+          echo '<p>Error when saving the file</p>';
+        }
       } else {
         echo '<p>The signature is invalid</p>';
       }
