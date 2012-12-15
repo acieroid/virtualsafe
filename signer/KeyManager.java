@@ -214,6 +214,42 @@ public class KeyManager {
     }
 
     /**
+     * Parse a new key pair and saves it.
+     * @return true on success, false on failure
+     */
+    public boolean newKeyPair(InputStream stream) {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+
+            /* Parse the encryption key */
+            String encKeyStr = read(reader);
+            encKey = parseCertificate(new ByteArrayInputStream(encKeyStr.getBytes("US-ASCII")));
+            if (encKey == null) {
+                System.out.println("ERROR: cannot read the encryption key");
+                return false;
+            }
+
+            /* Parse the decryption private key */
+            String decKeyStr = read(reader);
+            decKey = parsePrivateKey(new StringReader(decKeyStr));
+            if (decKey == null) {
+                System.out.println("ERROR: cannot read the decryption key");
+                return false;
+            }
+
+            System.out.println("Key successfully read.");
+
+            /* Save the keys */
+            write(encKeyStr, ENCRYPTION_KEY_FILE);
+            write(decKeyStr, DECRYPTION_KEY_FILE);
+        } catch (Exception e) {
+            System.out.println("ERROR: cannot parse the keys: " + e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Parse a certificate from a stream
      */
     private Certificate parseCertificate(InputStream stream) throws CertificateException {
@@ -405,7 +441,6 @@ public class KeyManager {
             bytesToFile(data, fileOut);
         } catch (Exception e) {
             System.out.println("ERROR: cannot decrypt the file: " + e.getMessage());
-            e.printStackTrace();
             return false;
         }
         return true;

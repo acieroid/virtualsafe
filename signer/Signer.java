@@ -40,7 +40,8 @@ public class Signer {
         System.out.println("Usage: signer OPTIONS...");
         System.out.println("Available options:");
         System.out.println("\t[-h|--help]\n\t\tDisplay this help");
-        System.out.println("\t[-n]\n\t\tAsk the user for a new certificate. First thing to do when a new user is created");
+        System.out.println("\t[-n]\n\t\tAsk for a new certificate. First thing to do when a new user is created, or when the certificate has been revocated");
+        System.out.println("\t[-k]\n\t\tAsk for a new key pair. To use when the key has been revocated.");
         System.out.println("\t[-s file signature]\n\t\tSign 'file', storing the signature in 'signature'");
         System.out.println("\t[-c file signature [certificate]]\n\t\tCheck the signature of a file, with a given certificate (or the user's certificate if none specified");
         System.out.println("\t[-e file_in file_out keyfile]\n\t\tEncrypt a file, storing the result in 'file_out' and the key used, encrypted with the user's public key in 'keyfile'");

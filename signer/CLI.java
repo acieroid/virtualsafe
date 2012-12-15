@@ -9,8 +9,10 @@ public class CLI implements UI {
     private static final int DECRYPT = 4;
     /** Mode to give a new certificate, after revocation */
     private static final int NEWCERT = 5;
+    /** Mode to give a new key pair, after revocation */
+    private static final int NEWKEY = 6;
     /** Mode to share a file */
-    private static final int SHARE = 6;
+    private static final int SHARE = 7;
     /** Invalid mode */
     private static final int INVALID = -1;
 
@@ -65,6 +67,10 @@ public class CLI implements UI {
                    args.length == 1) {
             /* New certificate */
             mode = NEWCERT;
+        } else if ((args[0].equals("-k") || args[0].equals("--newkey")) &&
+                   args.length == 1) {
+            /* New key pair */
+            mode = NEWKEY;
         } else if (args[0].equals("--share") && args.length == 3) {
             /* Share a file */
             mode = SHARE;
@@ -131,6 +137,14 @@ public class CLI implements UI {
                 System.out.println("Thank you, your new certificate has been saved");
             } else {
                 System.out.println("ERROR: cannot parse the certificate, please check if you correctly copied it");
+            }
+            break;
+        case NEWKEY:
+            System.out.println("Please paste your new key pair:");
+            if (manager.newKeyPair(System.in)) {
+                System.out.println("Thank you, your new key pair has been saved");
+            } else {
+                System.out.println("ERROR: cannot parse the keypair, please check if you correctly copied it");
             }
             break;
         case SHARE:

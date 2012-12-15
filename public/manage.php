@@ -15,6 +15,7 @@ if (!session_has_user()) {
   <p><ul>
     <li><a href="modify_password.php">Change your password</a></li>
     <li><a href="revocate.php">Revocate your certificate</a></li>
+    <li><a href="revocate_key.php">Revocate your key pair</a></li>
     <li><a href="upload.php">Upload a file</a></li>
     <li><a href="file_list.php">Manage your files</a></li>
     <li><a href="shared_file_list.php">List the files you share with others</a></li>
