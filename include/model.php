@@ -287,19 +287,6 @@ class User extends Identifiable {
   }
 
   /**
-   * Return the string representing the certificate of this user
-   */
-  public function get_certstr() {
-    $cert = openssl_x509_read(file_get_contents($this->get_certificate_file()));
-    if ($cert == null) {
-      throw new Exception('An error occured');
-    }
-    openssl_x509_export($cert, $certstr);
-    return $certstr;
-  }
-                              
-
-  /**
    * Return the path to the public encryption key of this user
    */
   public function get_pubkey_file() {
@@ -311,6 +298,18 @@ class User extends Identifiable {
    */
   public function get_pubkey() {
     return self::extract_key($this->get_pubkey_file());
+  }
+
+  /**
+   * Return the string representing the public key of this user
+   */
+  public function get_pubkeystr() {
+    $cert = openssl_x509_read(file_get_contents($this->get_pubkey_file()));
+    if ($cert == null) {
+      throw new Exception('An error occured');
+    }
+    openssl_x509_export($cert, $certstr);
+    return $certstr;
   }
 
   /**
@@ -335,7 +334,12 @@ class User extends Identifiable {
   }
 
   /**
-   * Return the path to the key of a file given its name
+   * Return the path to the key of a file given its name.
+   * TODO: the path to the key should depend on a user name (by
+   * default $this->user, but it can be another user, when sharing),
+   * because if not, if A has a file 'foo', B has a file 'foo', and B
+   * shares 'foo' with A, A cannot decrypt his 'foo' anymore since the
+   * key is overwritten.
    */
   public function get_key_path($name) {
     return $this->get_file_path($name) . '.key';

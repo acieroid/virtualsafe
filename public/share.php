@@ -50,7 +50,7 @@ if (!session_has_user()) {
     echo '<p>Download the <a href="download.php?name=' . $_GET['filename'] . '&key">key</a></p>';
     /* Add the public key of the other user */
     echo '<p>Copy the public key of ' . $_POST['user'] . '</p>';
-    echo '<textarea readonly="readonly" cols="70" rows="50">' . $dest_user->get_certstr() . '</textarea>';
+    echo '<textarea readonly="readonly" cols="70" rows="50">' . $dest_user->get_pubkeystr() . '</textarea>';
     /* Add the form to upload the result */
     echo '<p>And upload the resulting file:</p>';
     $token = CSRF::generate();
