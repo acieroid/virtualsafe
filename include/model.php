@@ -138,7 +138,7 @@ class User extends Identifiable {
       return false;
     }
 
-    if (preg_match("/^[a-z]$/i", $password)) {
+    if (preg_match("/^[a-z]*$/i", $password) != 0) {
       /* only alphabetical characters, rejected */
       return false;
     }
@@ -150,7 +150,7 @@ class User extends Identifiable {
    * Check if a filename is valid
    */
   public static function filename_valid($name) {
-    return preg_match("/[a-z0-9 \.\-]/i", $name);
+    return strlen($file) < 100 && preg_match("/^[a-z0-9 \.-]+$/i", $name) != 0;
   }
 
   /**
@@ -270,11 +270,11 @@ class User extends Identifiable {
   static private function extract_key($file) {
     $cert = openssl_x509_read(file_get_contents($file));
     if ($cert === false) {
-      throw new Exception('Cannot read certificate ' . $file . ': ' . openssl_error_string());
+      throw new Exception('An error occured');
     }
     $key = openssl_pkey_get_public($cert);
     if ($key === false) {
-      throw new Exception('Cannot read public key ' . $file . ': ' . openssl_error_string());
+      throw new Exception('An error occured');
     }
     return $key;
   }
@@ -285,6 +285,19 @@ class User extends Identifiable {
   public function get_certificate() {
     return self::extract_key($this->get_certificate_file());
   }
+
+  /**
+   * Return the string representing the certificate of this user
+   */
+  public function get_certstr() {
+    $cert = openssl_x509_read(file_get_contents($this->get_certificate_file()));
+    if ($cert == null) {
+      throw new Exception('An error occured');
+    }
+    openssl_x509_export($cert, $certstr);
+    return $certstr;
+  }
+                              
 
   /**
    * Return the path to the public encryption key of this user
@@ -474,6 +487,46 @@ class User extends Identifiable {
     $stmt->bindValue(':id', $this->id);
     $stmt->bindValue(':filename', $filename);
     if (!$stmt->execute()) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Share a file with another user. Return true on success.
+   */
+  public function share_file($dest_user, $filename, $key) {
+    /* TODO: verify that the file is not already shared with that user */
+    /* Find the file ID */
+    $stmt = $this->pdo->prepare('select id from file where user_id = :id and filename = :filename');
+    $stmt->bindValue(':id', $this->id);
+    $stmt->bindValue(':filename', $filename);
+    if (!$stmt->execute()) {
+      return false;
+    }
+    $res = $stmt->fetchAll();
+    if (count($res) != 1) {
+      return false;
+    }
+
+    $file_id = $res[0]['id'];
+
+    /* Add the entry to the DB */
+    $stmt = $this->pdo->prepare('insert into share(file_id, owner_id, user_id) values (:file_id, :dest_id, :id)');
+    $stmt->bindValue(':id', $this->id);
+    $stmt->bindValue(':dest_id', $dest_user->id);
+    $stmt->bindValue(':file_id', $file_id);
+    if (!$stmt->execute()) {
+      return false;
+    }
+
+    /* Add the key in the user directory */
+    $data = file_get_contents($key);
+    if (!file_exists($dest_user->get_files_directory())) {
+      mkdir($dest_user->get_files_directory());
+    }
+    if (file_put_contents($dest_user->get_key_path($filename), $data) === false) {
       return false;
     }
 
