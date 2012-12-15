@@ -496,16 +496,20 @@ class User extends Identifiable {
   }
 
   /**
-   * Return the list of all files shared by this user
+   * Return the files shared by this user. Each entry of the list is
+   * an array containing first the name of the file, and second the
+   * name of the user it is shared with.
    */
   public function list_shared_files() {
-    $stmt = $this->pdo->prepare('select filename from file where id in in (select file_id from share where owner_id = :id)');
+    /* TODO: not sure the request is correct */
+    $stmt = $this->pdo->prepare('select filename, name from share left join user on owner_id = user.id left join file on file_id = file.id');
     $stmt->bindValue(':id', $this->id);
     $stmt->execute();
     $res = $stmt->fetchAll();
     $result = array();
     foreach ($res as $f) {
-      array_push($result, $f['filename']);
+      array_push($result, array('filename' => $f['filename'],
+                                'username' => $f['name']));
     }
     return $result;
   }
@@ -514,8 +518,17 @@ class User extends Identifiable {
    * Return the list of the files shared with this user
    */
   public function list_shared_files_with() {
-    /* TODO: we must get the filename AND the owner name to be able to
-       find the path to the file */
+    /* TODO: not sure the request is correct */
+    $stmt = $this->pdo->prepare('select filename, name from share left join user on user_id = user.id left join file on file_id = file.id');
+    $stmt->bindValue(':id', $this->id);
+    $stmt->execute();
+    $res = $stmt->fetchAll();
+    $result = array();
+    foreach ($res as $f) {
+      array_push($result, array('filename' => $f['filename'],
+                                'username' => $f['name']));
+    }
+    return $result;
     return array();
   }
 }

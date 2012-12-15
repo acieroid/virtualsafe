@@ -21,7 +21,8 @@ if (!session_has_user()) {
     <li><a href="revocate.php">Revocate your certificate</a></li>
     <li><a href="upload.php">Upload a file</a></li>
     <li><a href="file_list.php">List your file</a></li>
-    <li><a href="share.php">Share a file</a></li>
+    <li><a href="shared_file_list.php">List the files you share with others</a></li>
+    <li><a href="shared_with_file_list.php">List the files shared with you</a></li>
   </ul></p>
 <?php
 }
