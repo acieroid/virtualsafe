@@ -46,7 +46,7 @@ else {
   <p><label for="file">File to upload: </label><input type="file" name="file" id="file"/></p>
   <p><label for="signature">Signature: </label><input type="file" name="signature" id="signature"/></p>
   <?php echo $token->get(); ?>
-  <p><input type="submit" value="Send"></p>
+  <p><input type="submit" value="Send"/></p>
   </form>
   <?php
 }
