@@ -147,6 +147,13 @@ class User extends Identifiable {
   }
 
   /**
+   * Check if a filename is valid
+   */
+  public static function filename_valid($name) {
+    return preg_match("/[a-z0-9 \.\-]/i", $name);
+  }
+
+  /**
    * Fill the fields of the user
    */
   public function fill_fields() {
@@ -337,7 +344,7 @@ class User extends Identifiable {
    * (itself encrypted using the user's public key).
    */
   public function encrypt_file($source, $filename) {
-    if (!file_exists($source)) {
+    if (!file_exists($source) || !self::filename_valid($filename)) {
       return false;
     }
     /* Create the destination directory */
@@ -411,9 +418,11 @@ class User extends Identifiable {
    * ../data/files/sha256(username)/sha256(filename), and its encryption key
    * in the corresponding .key file.
    * Return true on success.
-   * TODO: check if the file name is valid (no exotic characters, or " for example)
    */
   public function add_file($name) {
+    if (!self::filename_valid($name)) {
+      return false;
+    }
     /* Check if the file exists */
     $stmt = $this->pdo->prepare('select * from file where user_id = :id and filename = :name');
     $stmt->bindValue(':id', $this->id);
