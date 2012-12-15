@@ -43,7 +43,7 @@ public class KeyManager {
     private static final String SIGNATURE_METHOD = "SHA1withRSA";
     private static final String ASYMMETRIC_ENCRYPTION_METHOD = "RSA";
     private static final String ENCRYPTION_ALGORITHM = "AES";
-    private static final String ENCRYPTION_METHOD = "AES/CTR/NoPadding";
+    private static final String ENCRYPTION_METHOD = "AES/CBC/NoPadding";
     private static final int ENCRYPTION_KEYSIZE = 256;
     /** The directory where the keys are located */
     private String dir;
@@ -387,10 +387,13 @@ public class KeyManager {
             data = cipher.doFinal(data);
             SecretKey key = new SecretKeySpec(data, 0, data.length, ENCRYPTION_ALGORITHM);
 
+            System.out.println("Key: " + bytesToHex(key.getEncoded()));
+
             /* Read the IV and encrypted data from the file */
             RandomAccessFile f = new RandomAccessFile(fileIn, "r");
             byte[] iv = new byte[16]; /* the IV is 16 bytes long */
             f.read(iv);
+            System.out.println("IV: " + bytesToHex(iv));
             data = new byte[(int)f.length()-16]; /* the data is stored after the IV */
             f.read(data);
 
@@ -405,6 +408,7 @@ public class KeyManager {
             bytesToFile(data, fileOut);
         } catch (Exception e) {
             System.out.println("ERROR: cannot decrypt the file: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
         return true;

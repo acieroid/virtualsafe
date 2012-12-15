@@ -246,13 +246,25 @@ class User extends Identifiable {
   }
 
   /**
+   * Extract the public key of a certificate from a file
+   */
+  static private function extract_key($file) {
+    $cert = openssl_x509_read(file_get_contents($file));
+    if ($cert === false) {
+      throw new Exception('Cannot read certificate ' . $file . ': ' . openssl_error_string());
+    }
+    $key = openssl_pkey_get_public($cert);
+    if ($key === false) {
+      throw new Exception('Cannot read public key ' . $file . ': ' . openssl_error_string());
+    }
+    return $key;
+  }
+
+  /**
    * Return the certificate file of this user
    */
   public function get_certificate() {
-    $f = fopen($this->get_certificate_file(), 'r');
-    $cert = fread($f, 8192);
-    fclose($f);
-    return openssl_get_publickey($cert);
+    return self::extract_key($this->get_certificate_file());
   }
 
   /**
@@ -266,21 +278,21 @@ class User extends Identifiable {
    * Return the public key of this user
    */
   public function get_pubkey() {
-    return openssl_pkey_get_public($this->get_pubkey_file());
+    return self::extract_key($this->get_pubkey_file());
   }
 
   /**
    * Return the directory where the files of this user are stored
    */
   public function get_files_directory() {
-    return '../data/files' . hash_secure($this->name);
+    return '../data/files/' . hash_secure($this->name);
   }
 
   /**
    * Return the path to a file given its name
    */
   public function get_file_path($name) {
-    return $this->get_files_directory() . hash_secure($name);
+    return $this->get_files_directory() . '/' . hash_secure($name);
   }
 
   /**
@@ -336,6 +348,7 @@ class User extends Identifiable {
     $dest = $this->get_file_path($filename);
     $keydest = $this->get_key_path($filename);
     $key = generate_random_key();
+    echo 'Key: ' . str2hex($key);
 
     /* check if the destination already exists */
     if (file_exists($dest)) {
@@ -352,7 +365,8 @@ class User extends Identifiable {
     }
 
     /* encrypt the key */
-    $encryptedKey = encrypt_secure($key, $this->get_pubkey());
+    $encryptedKey = encrypt_asym_secure($key, $this->get_pubkey());
+
     /* save the encrypted key */
     if (!file_put_contents($keydest, $encryptedKey) === false) {
       return false;
@@ -398,6 +412,7 @@ class User extends Identifiable {
    * ../data/files/sha256(username)/sha256(filename), and its encryption key
    * in the corresponding .key file.
    * Return true on success.
+   * TODO: check if the file does not already exists
    */
   public function add_file($name) {
     $stmt = $this->pdo->prepare('insert into file(user_id, filename) values (:id, :name)');

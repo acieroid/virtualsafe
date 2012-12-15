@@ -22,6 +22,8 @@ if (!session_has_user()) {
         $user->save_signature($_FILES['signature']['tmp_name'], $fileName);
         $user->add_file($fileName);
         echo '<p>File has been added</p>';
+        while ($msg = openssl_error_string())
+          echo $msg . "<br />\n";
       } else {
         echo '<p>The signature is invalid</p>';
       }
