@@ -69,7 +69,7 @@ public class KeyManager {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    /**nnnnn
+    /**
      * Check if the keys of the user already exists and loads them.
      * @return true if the keys exists, else false.
      */

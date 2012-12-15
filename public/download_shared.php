@@ -64,7 +64,7 @@ if (!session_has_user()) {
     header('Content-Disposition: attachment; filename="' . $name . '.sign"');
     header("Content-type: application/octet-stream");
     header('Content-Transfer-Encoding: binary');
-    readfile($key);
+    readfile($signature);
   } else {
     include('menu.php');
     echo '<p>The signature file does not exists or this file has not been shared with you</p>';
@@ -84,7 +84,7 @@ if (!session_has_user()) {
     header('Content-Disposition: attachment; filename="' . $name . '.crt"');
     header("Content-type: application/octet-stream");
     header('Content-Transfer-Encoding: binary');
-    readfile($key);
+    readfile($certificate);
   } else {
     include('menu.php');
     echo '<p>The certificate file does not exists or this file has not been shared with you</p>';
