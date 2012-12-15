@@ -502,7 +502,7 @@ class User extends Identifiable {
    */
   public function list_shared_files() {
     /* TODO: not sure the request is correct */
-    $stmt = $this->pdo->prepare('select filename, name from share left join user on owner_id = user.id left join file on file_id = file.id');
+    $stmt = $this->pdo->prepare('select filename, name from share s, user u, file f where s.owner_id = :id and s.user_id = u.id and s.file_id = f.id');
     $stmt->bindValue(':id', $this->id);
     $stmt->execute();
     $res = $stmt->fetchAll();
@@ -519,7 +519,7 @@ class User extends Identifiable {
    */
   public function list_shared_files_with() {
     /* TODO: not sure the request is correct */
-    $stmt = $this->pdo->prepare('select filename, name from share left join user on user_id = user.id left join file on file_id = file.id');
+    $stmt = $this->pdo->prepare('select filename, name from share s, user u, file f where s.user_id = :id and s.owner_id = u.id and s.file_id = f.id');
     $stmt->bindValue(':id', $this->id);
     $stmt->execute();
     $res = $stmt->fetchAll();
