@@ -4,6 +4,9 @@ require_once('../include/database.php');
 require_once('../include/model.php');
 require_once('../include/sessions.php');
 
+if (isset($_GET['signout'])) {
+  session_remove_user(); /* remove the user now to have the good menu displayed */
+}
 include('menu.php');
 
 if (isset($_GET['signin'], $_POST['name'], $_POST['password'])) {
@@ -11,34 +14,22 @@ if (isset($_GET['signin'], $_POST['name'], $_POST['password'])) {
   $user = new User();
   if ($user->identify($_POST['name'], $_POST['password'])) {
     session_store_user($user);
-?>
-<p>You are now logged.</p>
-<?php
+    echo '<p>You are now logged.</p>';
     if ($user->valid) {
-?>
-     <p>You can now <a href="manage.php">manage your data</a></p>
-<?php
+      echo '<p>You can now <a href="manage.php">manage your data</a></p>';
     } else {
-?>
-     <p>You are not validated yet. Please wait until an admin validates your account</p>
-<?php
+      echo '<p>You are not validated yet. Please wait until an admin validates your account</p>';
     }
   } else {
-?>
-  <p>Wrong user or password</p>
-<?php
+    echo '<p>Wrong user or password</p>';
   }
 } else if (isset($_GET['signout'])) {
   /* The user wants to sign out */
   session_remove_user();
-?>
-  <p>You are now logged out</p>
-<?php
+  echo '<p>You are now logged out</p>';
 } else if (session_has_user()) {
   /* The user is already logged */
-?>
-  <p>You are already logged. Do you want to <a href="signin.php?signout">sign out</a>?</p>
-<?php
+  echo '<p>You are already logged. Do you want to <a href="signin.php?signout">sign out</a>?</p>';
 } else {
 ?>
 <form action="signin.php?signin" method="post">

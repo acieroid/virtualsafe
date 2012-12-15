@@ -6,6 +6,8 @@ require_once('../include/sessions.php');
 
 if (!session_has_user()) {
   echo '<p>Please <a href="signin.php">sign in</a></p>';
+} else if (!session_has_valid_user()) {
+  echo '<p>Your account is not valid. Please wait while an administrator validates it</p>';
 } else if (isset($_GET['name'], $_GET['user'], $_GET['encrypted'])) {
   /* Download the encrypted file. It is stored in the owner's directory */
   $user = session_get_user();

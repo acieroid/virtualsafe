@@ -8,6 +8,8 @@ include('menu.php');
 
 if (!session_has_user()) {
   echo '<p>Please <a href="signin.php">sign in</a></p>';
+} else if (!session_has_valid_user()) {
+  echo '<p>Your account is not valid. Please wait while an administrator validates it</p>';
 } else if (isset($_GET['filename'], $_GET['user'], $_FILES['key'])) {
   /* Share the file with the user */
   if (CSRF::check($_POST['csrf'])) {

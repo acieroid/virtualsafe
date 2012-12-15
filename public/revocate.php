@@ -9,13 +9,9 @@ require_once('../include/crypto.php');
 include('menu.php');
 
 if (!session_has_user()) {
-  ?>
-  <p>Please <a href="signin.php">sign in</p>
-  <?php
+  echo '<p>Please <a href="signin.php">sign in</p>';
 } else if (!session_has_valid_user()) {
-  ?>
-  <p>Your account is not valid. Please wait while an administrator validates it</p>
-  <?php
+  echo '<p>Your account is not valid. Please wait while an administrator validates it</p>';
 } else if (isset($_POST['confirmation'])) {
   if (CSRF::check($_POST['csrf'])) {
     $user = session_get_user();
@@ -45,9 +41,7 @@ if (!session_has_user()) {
     ?></textarea></p>
     <?php
   } else {
-    ?>
-    <p>The CSRF token is invalid</p>
-    <?php
+    echo '<p>The CSRF token is invalid</p>';
   }
 } else {
   $token = CSRF::generate();

@@ -8,9 +8,9 @@ require_once('../include/csrf.php');
 include('menu.php');
 
 if (!session_has_user()) {
-  ?>
-  <p>Please <a href="signin.php">sign in</a></p>
-  <?php
+  echo '<p>Please <a href="signin.php">sign in</a></p>';
+} else if (!session_has_valid_user()) {
+  echo '<p>Your account is not valid. Please wait while an administrator validates it</p>';
 } else if (isset($_FILES['file'], $_FILES['signature'])) {
   if (CSRF::check($_POST['csrf'])) {
     if (($_FILES['file']['error'] == 0 || $_FILES['file']['error'] == UPLOAD_ERR_OK) &&
