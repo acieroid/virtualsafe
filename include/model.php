@@ -363,7 +363,7 @@ class User extends Identifiable {
     }
 
     $content = file_get_contents($signature);
-    if (file_put_contents(get_signature_path($filename)) === false) {
+    if (file_put_contents(get_signature_path($filename),$content) === false) {
       return false;
     }
 
@@ -385,7 +385,7 @@ class User extends Identifiable {
   }
 
   /**
-   * Return the path to a file of this user, given the name of the
+   * Deletes a file of this user, given the name of the
    * file. Return true on success.
    */
   public function delete_file($filename) {
