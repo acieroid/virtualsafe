@@ -12,13 +12,13 @@ if (!session_has_user()) {
   echo '<p>Your account is not valid. Please wait while an administrator validates it</p>';
 } else {
   $user = session_get_user();
-  $files = $user->list_shared_files();
+  $files = $user->list_shared_files_with();
   echo '<ul>';
   if (count($files) == 0) {
     echo '<p>Nobody shares any file with you</p>';
   } else {
     foreach($files as $f) {
-      echo '<li><a href="download_shared.php?name=' . urlencode($f['filename']) . '?user=' . urlencode($f['username']) . '">' . $f['filename'] . '</a> is shared with you by ' . $f['username'] . ' - <a href="unshare_shared.php?name="' . urlencode($f['filename']) . '&user=' . urlencode($f['username']) . '">unshare</a></li>';
+      echo '<li><a href="download_shared.php?name=' . urlencode($f['filename']) . '&user=' . urlencode($f['username']) . '">' . $f['filename'] . '</a> is shared with you by ' . $f['username'] . ' - <a href="unshare_shared.php?name="' . urlencode($f['filename']) . '&user=' . urlencode($f['username']) . '">unshare</a></li>';
     }
   }
   echo '</ul>';

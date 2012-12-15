@@ -64,7 +64,7 @@ if (!session_has_user()) {
     include('menu.php');
     echo '<p>The signature file does not exists or this file has not been shared with you</p>';
   }
-} else if (isset($_GET['name'], $_GET['certificate'])) {
+} else if (isset($_GET['name'], $_GET['user'], $_GET['certificate'])) {
   /* Download the certificate */
   $user = session_get_user();
   $owner = User::find(urldecode($_GET['user']));

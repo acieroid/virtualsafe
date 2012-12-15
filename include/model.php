@@ -513,7 +513,7 @@ class User extends Identifiable {
     $file_id = $res[0]['id'];
 
     /* Add the entry to the DB */
-    $stmt = $this->pdo->prepare('insert into share(file_id, owner_id, user_id) values (:file_id, :dest_id, :id)');
+    $stmt = $this->pdo->prepare('insert into share(file_id, owner_id, user_id) values (:file_id, :id, :dest_id)');
     $stmt->bindValue(':id', $this->id);
     $stmt->bindValue(':dest_id', $dest_user->id);
     $stmt->bindValue(':file_id', $file_id);

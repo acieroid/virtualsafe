@@ -46,6 +46,7 @@ create table share(
        owner_id integer,
        -- the user who can read this file
        user_id integer,
+       primary key(file_id, owner_id, user_id), -- files can be shared only once with the same user
        foreign key (file_id) references file(id) on delete cascade,
        foreign key (owner_id) references user(id) on delete cascade,
        foreign key (user_id) references user(id) on delete cascade);
