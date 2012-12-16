@@ -113,7 +113,7 @@ if (!session_has_user()) {
   ?></li>
   <li><a href="download_shared.php?name=<?php echo $_GET['name']; ?>&user=<?php echo $_GET['user']; ?>&certificate">The certificate</a></li>  
   </ul>
-  <p>Then run <pre>java -jar signer.jar -d file_in key.key file_out</pre> to decrypt the file, and <pre>java -jar signer.jar -c file_out signature.sign certificate.crt</pre> to check that the file matches the signature.</p>
+  <p>Then run <pre>java -jar signer.jar -d file file.out file.key</pre> to decrypt the file, and <pre>java -jar signer.jar -c file.out file.sign file.crt</pre> to check that the file matches the signature.</p>
 <?php
 } else {
   echo '<p>Invalid request</p>';

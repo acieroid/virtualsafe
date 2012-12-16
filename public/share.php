@@ -28,6 +28,7 @@ if (!session_has_user()) {
             }
           } else {
             echo '<p>This user already has access to this file</p>';
+          }
         } else {
           echo '<p>The user you want to share the file with do not exists</p>';
         }

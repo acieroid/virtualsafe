@@ -528,7 +528,7 @@ class User extends Identifiable {
    * Share a file with another user. Return true on success.
    */
   public function share_file($dest_user, $filename, $key) {
-    if ($dest_user->has_access($user, $filename)) {
+    if ($dest_user->has_access($this, $filename)) {
       /* file already shared */
       return false;
     }
