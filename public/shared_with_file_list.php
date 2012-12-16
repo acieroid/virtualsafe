@@ -18,7 +18,7 @@ if (!session_has_user()) {
     echo '<p>Nobody shares any file with you</p>';
   } else {
     foreach($files as $f) {
-      echo '<li><a href="download_shared.php?name=' . urlencode($f['filename']) . '&user=' . urlencode($f['username']) . '">' . $f['filename'] . '</a> is shared with you by ' . $f['username'] . ' - <a href="unshare_shared.php?name="' . urlencode($f['filename']) . '&user=' . urlencode($f['username']) . '">unshare</a></li>';
+      echo '<li><a href="download_shared.php?name=' . urlencode($f['filename']) . '&user=' . urlencode($f['username']) . '">' . $f['filename'] . '</a> is shared with you by ' . $f['username'] . '</li>';
     }
   }
   echo '</ul>';
