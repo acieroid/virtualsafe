@@ -6,36 +6,39 @@
 #+LATEX_HEADER: \hypersetup{colorlinks,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black}
 #+OPTIONS:   H:3 num:t toc:nil \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t todo:nil
 * DONE Implementation choices
+In this section, we describe our implementation choices, their
+advantages and disadvantages.
 ** DONE Cryptographic methods used
 Unsecure cryptographic methods (MD5, DES, ...) were avoided, and the
 following methods were chosen:
-  - AES-256 in CBC mode with a random IV for encrypting documents~;
-  - SHA256 as a cryptographic hash function~;
+  - AES-256 in CBC mode with a random IV for encrypting documents;
+  - SHA256 as a cryptographic hash function;
   - RSA with 2048-bit keys for signing and encrypting symmetric keys.
 
-In the rest of this document, when we refer to /encrypt something/, it
+In the rest of this document, when we refer to /encrypt/ something, it
 means encrypting it with AES-256 with a random IV. When we refer to
-/hash something/, it means hashing it with SHA256. When we refer to
-/sign something/, it refers to sign it with RSA using 2048-bit keys
+/hash/ something, it means hashing it with SHA256. When we refer to
+/sign/ something or to /encrypt with the public key/, it respectively
+refers to sign or to encrypt with RSA using 2048-bit keys
 and SHA1 as the hash function.
 ** DONE Securing the data on the server
 *** User passwords
-The user passwords are stored on the database. There were multiple
+The user passwords are stored on the database. There are multiple
 way to store them:
   1. *plain password*: store the plain password, which should be
      avoided because anyone having (potentially malicously) read
-     access to the database will know the password of every user~;
+     access to the database will know the password of every user;
   2. *hashed password*: store the hash of the password using a secure
      cryptographic hash function, which has the disadvantage of having
-     the same stored value for two identical passwords~;
+     the same stored value for two identical passwords;
   3. *hashed password with salt*: store the hash of the string formed
      by the password concatened to a salt, and store the salt used,
      which has the advantage of having different stored passwords for
      identical passwords.
 
 The third method, which is the most secure, was chosen. The stored
-password is the hash of /name|password|salt/, where name is the name
-of the user, password its password, and salt a (pseudo-)random
+password is the hash of /name|password|salt/, where /name/ is the name
+of the user, /password/ its password, and /salt/ a (pseudo-)random
 value. The '|' characters are there to have a different scheme from
 what is advised on the internet, to avoid finding the password from
 the hash by using a precomputed online table containing such hashes.
@@ -45,25 +48,28 @@ We found multiple way to encrypt files on the server:
      filesystem or in the application code source. This has the
      disadvantage that when the server is compromised, the encryption
      key can be found and every file can then be decrypted.
-  2. Using symmetric encryption with one key and a salt, where the
-     salt is stored in the database and is different for each
-     file. This has the advantage that if the database server is
-     separated from the fileserver, having one of the two server
-     compromised does not compromise the files
+  2. Using symmetric encryption with one key (the same for all files)
+     and a salt, where the salt is stored in the database and is
+     different for each file. This has the advantage that if the
+     database server is separated from the file server, having one of
+     the two server compromised does not compromise the files
   3. Using symmetric encryption with a different key for each file,
      saving the key in the database. This has the same advantage as
      the second method.
   4. Encrypt the file with the user's public-key. This has the
-     advantage that for big files, the encryption might be slow
+     disadvantage that for big files, the encryption might be slow
      (asymmetric encryption is slower than symmetric encryption) and
      that it requires the file to be saved multiple times (once for
-     each user) if it is shared among multiple users.
+     each user) if it is shared among multiple users. However, if the
+     server is compromised, the files are not decryptable by the
+     attacker.
   5. Using a method similar to PGP: each file is encrypted with a
      random key, the random key is encrypted with the user's public
-     key and saved on the filesystem. This has the advantage that in
-     any case, the files on the server could not be decrypted by
-     somebody who has access to all of the server's file and
-     databases. However, it requires more manipulations by the user.
+     key and saved on the filesystem. It is faster than the
+     method 4. This also has the advantage that in any case, the files
+     on the server could not be decrypted by somebody who has access
+     to all of the server's file and databases. However, it requires
+     more manipulations by the user.
 
 Even though the last method complicates the user manipulations, it was
 chosen, because the program given with the application could be
@@ -75,26 +81,30 @@ To summarize how this method works:
     pairs of keys (one for generating and verifying signature, the
     other for the encryption and decryption) and gives them to the
     user, which should copy them into the program given with the
-    application
+    application.
   - When the user wants to upload a file, he uses the program to
     compute the file's signature, and upload the file with its
     signature to the server. The server then generates a random key,
     encrypt the file with this random key, encrypt the random key with
-    the user's public key and saves both the encrypted file, the
-    encrypted key and the signature to the file system
+    the user's public key and saves the encrypted file, the
+    encrypted key and the signature to the file system.
   - When the user wants to download a file, he downloads the encrypted
     file, the encrypted key and the signature. He decrypts the secret
     key with its private key, decrypts the file with the secret key,
-    and check that the resulting file matches the signature
+    and check that the resulting file matches the signature.
   - When the user /A/ wants to share a file, he downloads the
-    encrypted key and the public key of the user he wants to share the
-    file with (/B/). He decrypts the encrypted secret key with its
-    private key, encrypts it with /B/'s public-key, and send the
-    result to the server, which saves it
+    encrypted secret key used to encrypt the file, and the public key
+    of the user he wants to share the file with (/B/). He decrypts the
+    encrypted secret key with its private key, encrypts it with /B/'s
+    public-key, and send the result to the server, which saves it.
+
+The main disadvantage of this method is that it requires the user to
+do a lot of things, which might discourage users to use this
+service.
 ** DONE Revocation
 *** DONE Revocation of the certificate
-When the certificate of the user is revocated, it is deleted and a
-new one is generated. The certificate and private key are showed to
+When the certificate of the user is revocated, it is deleted and a new
+one is generated. The new certificate and private key are showed to
 the user, who should copy them into the Java program.
 
 Since all the signatures of the user made with this certificate are
@@ -111,7 +121,7 @@ The revocation of the encryption/decryption key pair is similar to
 the revocation of the certificate used for signing files, except that
 not only the signature are deleted, but also the files, because the
 old encryption key is not considered secure anymore. The user is thus
-strongly advised to download all its files before revoking the
+strongly advised to download all his files before revoking the
 encryption key.
 ** DONE Libraries used
 The following libraries were used during this project:
@@ -125,8 +135,9 @@ The following libraries were used during this project:
     =mcrypt='s Rijndael was used with 128-bit block size and 256-bit
     keys, which results in the AES cipher.
   - PHP's /PDO/ to communicate to the MySQL server avoiding SQL
-    injections, through the use of prepared statements
-  - /BouncyCastle/ in java to be able to read certificates in the PEM format
+    injections, through the use of prepared statements.
+  - /BouncyCastle/ in Java to be able to read certificates in the PEM
+    format (the format exported by OpenSSL).
   - Java's /Crypto/ library and /Security/ framework to sign, verify
     signatures, encrypt and decrypt data in the Java application
 * DONE Threat model
@@ -153,28 +164,28 @@ Template[fn::=http://msdn.microsoft.com/en-us/library/ff648866.aspx=].
 The security objectives of the applications are:
   - Prevent an attacker from obtaining files accessible by the
     application's users without having the authorization from the
-    file owner
+    file owner.
   - Protect the integrity of the files, ie. prevent an attacker to
     modify a file stored by some user without the user noticying it.
-  - Prevent an attacker to validate non valid users
+  - Prevent an attacker to validate non valid users.
   - Prevent an attacker to log in with another user account or with
-    an administrator account
-  - Prevent an attacker to obtain user or administrator passwords
+    an administrator account.
+  - Prevent an attacker to obtain user or administrator passwords.
 ** DONE Application Overview
 *** DONE End-to-end scenario
 The diagram representing the end-to-end scenario is represented in
 the figure \ref{fig:end-to-end}.
 
 \begin{figure}
-\centerline{\includegraphics[width=\textwidth]{end-to-end.png}}
+\centerline{\includegraphics[width=0.6\textwidth]{end-to-end.png}}
 \caption{End-to-end scenario}\label{fig:end-to-end}
 \end{figure}
 
 *** DONE Roles
 There are two kinds of users of the web service: users and
 administrators. They have the following roles
-  - Administrators can validate user accounts, but cannot do anything else
-  - Users can read and update their own data
+  - Administrators can validate user accounts, but cannot do anything else.
+  - Users can read and update their own data.
 
 Other trusts levels can be identified, and are listed in the
 following table:
@@ -204,32 +215,34 @@ The key scenarios are listed in the following table:
 \newpage
 #+CAPTION: Usage scenarios
 #+ATTR_LaTeX: longtable align=|c|l|
-|------+---------------------------------------------------------------|
-| *ID* | *Description*                                                 |
-|------+---------------------------------------------------------------|
-|------+---------------------------------------------------------------|
-|    1 | Anonymous user creates new (non-valid) account                |
-|------+---------------------------------------------------------------|
-|    2 | Administrator validates a non valid account                   |
-|------+---------------------------------------------------------------|
-|    3 | User logs in with a valid account                             |
-|------+---------------------------------------------------------------|
-|    4 | User lists its own files                                      |
-|------+---------------------------------------------------------------|
-|    5 | User lists the files shared by him                            |
-|------+---------------------------------------------------------------|
-|    6 | User lists the files shared with him                          |
-|------+---------------------------------------------------------------|
-|    7 | User download a file (either owned by him or shared with him) |
-|------+---------------------------------------------------------------|
-|    8 | User shares a file with another user                          |
-|------+---------------------------------------------------------------|
-|    9 | User uploads a file along with its signature                  |
-|------+---------------------------------------------------------------|
-|   10 | User revocates its certificate                                |
-|------+---------------------------------------------------------------|
-|   11 | User deletes a file he owns                                   |
-|------+---------------------------------------------------------------|
+|------+----------------------------------------------------------------|
+| *ID* | *Description*                                                  |
+|------+----------------------------------------------------------------|
+|------+----------------------------------------------------------------|
+|    1 | Anonymous user creates new (non-valid) account                 |
+|------+----------------------------------------------------------------|
+|    2 | Administrator validates a non valid account                    |
+|------+----------------------------------------------------------------|
+|    3 | User logs in with a valid account                              |
+|------+----------------------------------------------------------------|
+|    4 | User lists its own files                                       |
+|------+----------------------------------------------------------------|
+|    5 | User lists the files shared by him                             |
+|------+----------------------------------------------------------------|
+|    6 | User lists the files shared with him                           |
+|------+----------------------------------------------------------------|
+|    7 | User downloads a file (either owned by him or shared with him) |
+|------+----------------------------------------------------------------|
+|    8 | User shares a file with another user                           |
+|------+----------------------------------------------------------------|
+|    9 | User uploads a file along with its signature                   |
+|------+----------------------------------------------------------------|
+|   10 | User revocates its certificate                                 |
+|------+----------------------------------------------------------------|
+|   11 | User revocates its encryption key                              |
+|------+----------------------------------------------------------------|
+|   12 | User deletes a file he owns                                    |
+|------+----------------------------------------------------------------|
 
 *** DONE Technologies
   - *Operating System*: FreeBSD 8.0 with security patches
@@ -245,24 +258,24 @@ following table. The security of the application depends on the
 security of those external dependencies.
 #+CAPTION: External Dependencies
 #+ATTR_LaTeX: longtable align=|c|p{0.8\textwidth}|
-|------+-------------------------------------------------------------------------------------------------------------------------|
-| *ID* | *Description*                                                                                                           |
-|------+-------------------------------------------------------------------------------------------------------------------------|
-|------+-------------------------------------------------------------------------------------------------------------------------|
-|    1 | The application will run on a FreeBSD server running Apache. This server will be configured in a secure way.            |
-|------+-------------------------------------------------------------------------------------------------------------------------|
-|    2 | The database server will be MySQL and it will run on the same FreeBSD server. The MySQL configuration will be hardened. |
-|------+-------------------------------------------------------------------------------------------------------------------------|
-|    3 | The connection between the web server and the database will only be done on the same machine.                           |
-|------+-------------------------------------------------------------------------------------------------------------------------|
-|    4 | The server is behind a firewall and the only communication available will be HTPS.                                      |
-|------+-------------------------------------------------------------------------------------------------------------------------|
-|    5 | The application will be written with PHP. The default configuration of PHP will be hardened.                            |
-|------+-------------------------------------------------------------------------------------------------------------------------|
-|    6 | The PHP libraries used are mcrypt, openssl, pdo.                                                                        |
-|------+-------------------------------------------------------------------------------------------------------------------------|
-|    7 | The program given with the application will use Java and the Bouncy Castle library.                                     |
-|------+-------------------------------------------------------------------------------------------------------------------------|
+|------+--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *ID* | *Description*                                                                                                                                                |
+|------+--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|------+--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|    1 | The application will run on a FreeBSD server running Apache. This server will be configured in a secure way.                                                 |
+|------+--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|    2 | The database server will be MySQL and it will run on the same FreeBSD server. The MySQL configuration will be hardened.                                      |
+|------+--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|    3 | The connection between the web server and the database will only be done on the same machine.                                                                |
+|------+--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|    4 | The server is behind a firewall and the only communication available will be HTPS.                                                                           |
+|------+--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|    5 | The application will be written with PHP. The default configuration of PHP will be hardened and the developpers will use good practice for writing the code. |
+|------+--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|    6 | The PHP libraries used are =mcrypt=, =openssl=, =pdo=.                                                                                                       |
+|------+--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|    7 | The program given with the application will use Java and the Bouncy Castle library.                                                                          |
+|------+--------------------------------------------------------------------------------------------------------------------------------------------------------------|
 *** DONE Application Security Mechanisms
   - Sensitive data is stored encrypted (for files) or hashed (for
     passwords) using cryptographically strong methods.
@@ -320,9 +333,9 @@ Entry points are described in the following table
 |------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
 |  1.4 | Account creation page            | The page allowing anonymous users to create a new account                                                                | (1) Anonymous web user                                                                                                   |
 |------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
-|  1.5 | User file list                   | The page listing the files that the user can access                                                                      | (2) User with valid credentials                                                                                          |
+|  1.5 | User file list page              | The page listing the files that the user can access                                                                      | (2) User with valid credentials                                                                                          |
 |------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
-|  1.6 | User file download               | The page that let the user download a file                                                                               | (2) User with valid credentials                                                                                          |
+|  1.6 | User file download page          | The page that let the user download a file                                                                               | (2) User with valid credentials                                                                                          |
 |------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
 |  1.7 | User share page                  | The page allowing the user to share files with other users                                                               | (2) User with valid credentials                                                                                          |
 |------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
@@ -337,7 +350,7 @@ Entry points are described in the following table
 | 1.12 | User password modification page  | The page allowing the user to change its password                                                                        | (2) User with valid credentials                                                                                          |
 |------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
 |------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
-|    2 | Database port                    | The database will only be accessible on the local host                                                                   | (4) Server administrator (5) Database web user (6) Database admin user                                                   |
+|    2 | Database port                    | The database will only be accessible on the local host, through a socket file                                            | (4) Server administrator (5) Database web user (6) Database admin user                                                   |
 |------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
 |  2.1 | Database connection              | A connection made with valid credentials on the database server                                                          | (4) Server administrator (5) Database web user (6) Database admin user                                                   |
 |------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
@@ -372,7 +385,7 @@ Exits points are:
 |------+-------------------------------------------------+--------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------|
 |  1.5 | User private key                                | The key used by the user to sign its file                                            | (2) User with valid credentials (7) Web server user process                                                        |
 |------+-------------------------------------------------+--------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------|
-|  1.6 | User private encryption key                     | The key used by the user to encrypt its file                                         | (2) User with valid credentials (7) Web server user process                                                        |
+|  1.6 | User private encryption key                     | The key used by the user to decrypt its file                                  | (2) User with valid credentials (7) Web server user process                                                        |
 |------+-------------------------------------------------+--------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------|
 |------+-------------------------------------------------+--------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------|
 |    2 | Administrator data                              | All data related to the administrators                                               |                                                                                                                    |
@@ -407,21 +420,21 @@ Exits points are:
 The tables that follows lists the existing threats.
 #+CAPTION: Threat: Access to login credentials
 #+ATTR_LaTeX: longtable align=|p{3cm}|p{0.8\textwidth}|
-|-------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *ID*                    | 1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-|-------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Description*           | Adversary get access to an user or admin login credentials                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-|-------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *STRIDE classification* | Elevation of privileges                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-|-------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Known mitigation*      | The security of the login credetials depend on the cryptographic methods used to store them and on the security of the transport layer (SSL). The only place where the login credentials are used is the /login/ page and the /password modification/ page. The password modification page requires the user to enter its previous password, so an attacker having access to this page is not able to change the user's password without previously knowing it. Moreover, all the user passwords are stored salted and hashed in the database, and users are not allowed to choose weak passwords (the passwords should be at least 10 characters long, with 2 non-alphabetical characters). |
-|-------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Entry points*          | (1.1) Admin login page (1.3) User login page (1.11) User password modification page (2.1)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-|-------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Assets*                | (1.1) User login credentials (2.1) Administrator login credentials                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-|-------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Threat tree*           | Similar to the threat tree of the threat 2\ref{fig:threat2}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-|-------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *ID*                    | 1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+|-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Description*           | Adversary get access to an user or admin login credentials                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+|-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *STRIDE classification* | Elevation of privileges                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+|-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Known mitigation*      | The security of the login credetials depend on the cryptographic methods used to store them and on the security of the transport layer (SSL). The only place where the login credentials are used is the /login/ page and the /password modification/ page. The password modification page requires the user to enter its previous password, so an attacker having access to this page is not able to change the user's password without previously knowing it. Moreover, all the user passwords are stored salted and hashed in the database, and users are not allowed to choose weak passwords (the passwords should be at least 10 characters long, with at least 2 non-alphabetical characters). |
+|-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Entry points*          | (1.1) Admin login page (1.3) User login page (1.11) User password modification page (2.1) Database connection                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+|-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Assets*                | (1.1) User login credentials (2.1) Administrator login credentials                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+|-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Threat tree*           | Similar to the threat tree of the threat 2 (figure \ref{fig:threat2})                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+|-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 
 #+CAPTION: Threat: User file list disclosure
 #+ATTR_LaTeX: longtable align=|p{3cm}|p{0.8\textwidth}|
@@ -472,7 +485,7 @@ The tables that follows lists the existing threats.
 |-------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | *Description*           | Adversary can force user to modify its data without the user knowing it, for example with cross-site request forgery (CSRF).                                                                                                                                                                                                                                                                                                               |
 |-------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *STRIDE classification* | Elevation of privileges                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| *STRIDE classification* | Repudiation, Elevation of privileges                                                                                                                                                                                                                                                                                                                                                                                                       |
 |-------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | *Known mitigation*      | Each page containing a form that allows the user to modify some data is protected using a unique CSRF token, which is then verified on the validation of the form. The attacker is thus not able to forge request because he does not know this unique token. Also, some modification operation require some operation by the user (more than just loading the page), such as decrypt and reencrypt a key for sharing a file, for example. |
 |-------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -510,7 +523,7 @@ The tables that follows lists the existing threats.
 |-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | *STRIDE classification* | Tampering, Information disclosure, Elevation of privileges                                                                                                                                                                                                                                                                                                                                                              |
 |-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Known mitigation*      | The MySQL server is only accessible on the local host, so the adversary should previously be connected to the server. Moreover, database user credentials should be strong and not written anywhere. Also, multiple database accounts exists depeding on the access needed (the =web= and =admin= user, who are described in the trust levels table).
+| *Known mitigation*      | The MySQL server is only accessible on the local host, so the adversary should previously be connected to the server. Moreover, database user credentials should be strong and not written anywhere. Also, multiple database accounts exists depending on the access needed (the =web= and =admin= user, who are described in the trust levels table).
 |-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | *Entry points*          | (2.1) Database connection                                                                                                                                                                                                                                                                                                                                                                               |
 |-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -521,21 +534,21 @@ The tables that follows lists the existing threats.
 
 #+CAPTION: Threat: Full access to the server
 #+ATTR_LaTeX: longtable align=|p{3cm}|p{0.8\textwidth}|
-|-------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *ID*                    | 7                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-|-------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Description*           | Adversary get a valid connection to the server with the root user account. He can then access the whole database with root privileges, all user files, keys and signatures which are stored on the filesystem, and stop the server processes or modify their configuration.                                                                                                                                                                                  |
-|-------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *STRIDE classification* | Tampering, Repudiation, Information disclosure, Denial of service, Elevation of privileges                                                                                                                                                                                                                                                                                                                                                                   |
-|-------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Known mitigation*      | There is no SSH server listening on the server. The server is installed on a FreeBSD jail, and the only way to access it is through the FreeBSD hosts. This FreeBSD hosts only have a SSH server and the minimal software needed to manage the jails. The SSH server do not accept connection with paswords, only with keys. The attacker should then have a valid SSH key to connect as user and know the root password of the server, which is very strong |
-|-------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Entry points*          | (3.1) Server SSH connection                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-|-------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Assets*                | (3.1) Availability of the website (3.2) Ability to execute code as a web user (3.3) Ability to execute SQL code on the databases (3.4) Access to the file system                                                                                                                                                                                                                                                       |
-|-------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Threat tree*           | None                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-|-------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *ID*                    | 7                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+|-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Description*           | Adversary get a valid connection to the server with the root user account. He can then access the whole database with root privileges, all user files, keys and signatures which are stored on the filesystem, and stop the server processes or modify their configuration.                                                                                                                                                                                 |
+|-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *STRIDE classification* | Tampering, Repudiation, Information disclosure, Denial of service, Elevation of privileges                                                                                                                                                                                                                                                                                                                                                                  |
+|-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Known mitigation*      | There is no SSH server listening on the server. The server is installed on a FreeBSD jail, and the only way to access it is through the FreeBSD host. This FreeBSD host only have a SSH server and the minimal software needed to manage the jails. The SSH server do not accept connection with paswords, only with keys. The attacker should then have a valid SSH key to connect as user and know the root password of the server, which is very strong. |
+|-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Entry points*          | (3.1) Server SSH connection                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+|-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Assets*                | (3.1) Availability of the website (3.2) Ability to execute code as a web user (3.3) Ability to execute SQL code on the databases (3.4) Access to the file system                                                                                                                                                                                                                                                                                            |
+|-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Threat tree*           | None                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+|-------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 
 #+CAPTION: Threat: Creation of an admin account
 #+ATTR_LaTeX: longtable align=|p{3cm}|p{0.8\textwidth}|
@@ -544,9 +557,9 @@ The tables that follows lists the existing threats.
 |-------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | *Description*           | Adversary manage to create an admin account. He can then validates any user.
 |-------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *STRIDE classification* | Repudiation                                                                                                                                                                                                                                                                                                                                                                                              |
+| *STRIDE classification* | Elevation of privileges                                                                                                                                                                                                                                                                                                                                                                     |
 |-------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Known mitigation*      | The only way to create an admin account is to have access to the database with the 'admin' account
+| *Known mitigation*      | The only way to create an admin account is to have access to the database with the 'admin' account. The mitigation for this were explained in the threat 6.
 |-------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | *Entry points*          | (2.1) Database connection                                                                                                                                                                                                                                                                                                                                                                                                               |
 |-------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
