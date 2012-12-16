@@ -75,7 +75,7 @@ if (!session_has_user()) {
   }
   ?></li>
   </ul>
-  <p>Then run <pre>java -jar signer.jar -d file_in filou_out key.key</pre> to decrypt the file, and <pre>java -jar signer.jar -c file_out signature.sign</pre> to check that the file matches the signature.</p>
+  <p>Then run <pre>java -jar signer.jar -d file file.out file.key</pre> to decrypt the file, and <pre>java -jar signer.jar -c file.out file.sign</pre> to check that the file matches the signature.</p>
 <?php
 } else {
   echo '<p>Invalid request</p>';

@@ -491,10 +491,12 @@ class User extends Identifiable {
     }
 
     if (!unlink($this->get_file_path($filename)) ||
-        !unlink($this->get_signature_path($filename)) ||
         !unlink($this->get_key_path($this, $filename))) {
       return false;
     }
+    /* the signature might not exists, so we don't check the return value */
+    unlink($this->get_signature_path($filename));
+
 
     $stmt = $this->pdo->prepare('select u.name from user u, share s, file f where s.owner_id = :id and f.user_id = u.id and s.file_id = f.id and f.filename = :filename');
     $stmt->bindValue(':id', $this->id);
