@@ -123,10 +123,21 @@ class User extends Identifiable {
    * another user and if it contains valid characters.
    */
   public function name_valid($name) {
+    if (!preg_match("/[a-z0-9]+/i", $name)) {
+      /* name contains invalid characters */
+      return false;
+    }
+
+    if (strlen($name) >= 100) {
+      /* name is too long */
+      return false;
+    }
+
+    /* name already exists? */
     $stmt = get_pdo()->prepare('select * from user where name = :name');
     $stmt->bindValue(':name', $name);
     $stmt->execute();
-    return count($stmt->fetchAll()) == 0 && preg_match("/[a-z0-9]+/i", $name);
+    return count($stmt->fetchAll()) == 0;
   }
 
   /**
@@ -147,7 +158,8 @@ class User extends Identifiable {
   }
 
   /**
-   * Check if a filename is valid
+   * Check if a filename is valid, ie. less than 100 characters and
+   * only with alpha-numeric characters, dots, dashes or spaces.
    */
   public static function filename_valid($name) {
     return strlen($name) < 100 && preg_match("/^[a-z0-9 \.-]+$/i", $name) != 0;
@@ -334,15 +346,14 @@ class User extends Identifiable {
   }
 
   /**
-   * Return the path to the key of a file given its name.
-   * TODO: the path to the key should depend on a user name (by
-   * default $this->user, but it can be another user, when sharing),
-   * because if not, if A has a file 'foo', B has a file 'foo', and B
-   * shares 'foo' with A, A cannot decrypt his 'foo' anymore since the
-   * key is overwritten.
+   * Return the path to the key of a file given its name.  The path to
+   * the key depend on the owner name (by default $this, but it can be
+   * another user, when sharing), because if not, if A has a file
+   * 'foo', B has a file 'foo', and B shares 'foo' with A, A cannot
+   * decrypt his 'foo' anymore since the key is overwritten.
    */
-  public function get_key_path($name) {
-    return $this->get_file_path($name) . '.key';
+  public function get_key_path($owner, $name) {
+    return $this->get_files_directory() . '/' . hash_secure($owner->name . $name) . '.key';
   }
 
   /**
@@ -382,7 +393,7 @@ class User extends Identifiable {
     }
 
     $dest = $this->get_file_path($filename);
-    $keydest = $this->get_key_path($filename);
+    $keydest = $this->get_key_path($this, $filename);
     $key = generate_random_key();
 
     /* check if the destination already exists */
@@ -481,7 +492,7 @@ class User extends Identifiable {
 
     if (!unlink($this->get_file_path($filename)) ||
         !unlink($this->get_signature_path($filename)) ||
-        !unlink($this->get_key_path($filename))) {
+        !unlink($this->get_key_path($this, $filename))) {
       return false;
     }
 
@@ -530,7 +541,7 @@ class User extends Identifiable {
     if (!file_exists($dest_user->get_files_directory())) {
       mkdir($dest_user->get_files_directory());
     }
-    if (file_put_contents($dest_user->get_key_path($filename), $data) === false) {
+    if (file_put_contents($dest_user->get_key_path($this, $filename), $data) === false) {
       return false;
     }
 
@@ -584,7 +595,6 @@ class User extends Identifiable {
    * name of the user it is shared with.
    */
   public function list_shared_files() {
-    /* TODO: not sure the request is correct */
     $stmt = $this->pdo->prepare('select filename, name from share s, user u, file f where s.owner_id = :id and s.user_id = u.id and s.file_id = f.id');
     $stmt->bindValue(':id', $this->id);
     $stmt->execute();
@@ -601,7 +611,6 @@ class User extends Identifiable {
    * Return the list of the files shared with this user
    */
   public function list_shared_files_with() {
-    /* TODO: not sure the request is correct */
     $stmt = $this->pdo->prepare('select filename, name from share s, user u, file f where s.user_id = :id and s.owner_id = u.id and s.file_id = f.id');
     $stmt->bindValue(':id', $this->id);
     $stmt->execute();

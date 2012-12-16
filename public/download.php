@@ -28,7 +28,7 @@ if (!session_has_user()) {
   /* Download the key */
   $user = session_get_user();
   $name = urldecode($_GET['name']);
-  $key = $user->get_key_path($name);
+  $key = $user->get_key_path($user, $name);
 
   if ($user->has_file($name) && file_exists($key)) {
     header('Content-Description: File Transfer');

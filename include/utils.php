@@ -41,7 +41,6 @@ function encrypt_asym_secure($str, $key) {
 
 /**
  * Generate a random salt
- * TODO: use openssl_random_pseudo_bytes
  */
 function generate_salt() {
   $size = 16;
@@ -50,7 +49,6 @@ function generate_salt() {
 
 /**
  * Generate 256-bit a random key
- * TODO: use openssl_random_pseudo_bytes
  */
 function generate_random_key() {
   $size = openssl_cipher_iv_length('aes-256-cbc');

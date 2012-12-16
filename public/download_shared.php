@@ -37,7 +37,7 @@ if (!session_has_user()) {
   }
   $name = urldecode($_GET['name']);
   /* take the key of the user, not the owner */
-  $key = $user->get_key_path($name);
+  $key = $user->get_key_path($owner, $name);
 
   if ($user->has_access($owner, $name) && file_exists($key)) {
     header('Content-Description: File Transfer');

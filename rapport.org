@@ -5,7 +5,7 @@
 #+LATEX_HEADER: \usepackage[pdftex]{hyperref}
 #+LATEX_HEADER: \hypersetup{colorlinks,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black}
 #+OPTIONS:   H:3 num:t toc:nil \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t todo:nil
-* TODO Implementation choices
+* DONE Implementation choices
 ** DONE Cryptographic methods used
 Unsecure cryptographic methods (MD5, DES, ...) were avoided, and the
 following methods were chosen:

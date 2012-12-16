@@ -9,7 +9,6 @@ public class Signer {
         /* Parse arguments */
         if (args.length == 0) {
             /* No arguments, launch the graphical interface */
-            /* TODO: implement the graphical interface */
             System.out.println("GUI not implemented, sorry.");
             return;
         } else if (Arrays.asList(args).contains("--help") ||
