@@ -10,9 +10,9 @@ This document describes how to install the Virtual Safe application on
 a new server.
 * Software needed
 The Virtual Safe application needs the following software to be
-installed. We also give the version we used during development, as
-well as some FreeBSD specific instructions (the development was made
-on a FreeBSD jail available by all the members using git).
+installed. For reference, we also give the version we used during
+development, as well as the corresponding FreeBSD port development was
+made on a FreeBSD jail available by all the members using git).
 
   - Apache 2.2.23 (=www/apache22= port)
   - OpenSSL 1.0.1 (=security/openssl=)
@@ -43,6 +43,7 @@ configuration file (=httpd.conf=).
 NameVirtualHost *:443
 <VirtualHost *:443>
      ServerName cours.awesom.eu
+     # Only the public part of the site is allowed
      DocumentRoot /home/secu/www/public
      SSLEngine on
      SSLCertificateFile /etc/ssl/cert/server.crt
@@ -52,6 +53,7 @@ NameVirtualHost *:443
 <Directory /home/secu/www/public>
   Order allow,deny
   Allow from all
+  DirectoryIndex index.php
   # Turn off all option to improve security
   Options None
   # Disable .ht* files
@@ -68,9 +70,8 @@ Apache's main configuration file (=httpd.conf=).
 ServerSignature Off
 ServerTokens Prod
 
-# Decrease the timeout and limit large requests to mitigate DDOS attacks
+# Decrease the timeout to mitigate DDOS attacks
 Timeout 50
-LimitRequestBody 1048576 # 1Mo
 #+END_SRC
 
 ** PHP
@@ -112,10 +113,11 @@ remote root login, remove the test databases, ...
 * Directories
 The following directories should also be created, and be owned by the
 web user (the user with which Apache is launched, =http= or =www= on
-most systems):
+most systems). The =data= directory should not be readable by other users:
 #+BEGIN_SRC text
 # mkdir -p data/{certificates,pubkeys,files}
 # chown -R www data/ # if apache is launched by the www user
+# chmod -R o-rwx data/
 #+END_SRC
 * Java Application
 The Java application requires Bouncy
@@ -127,4 +129,9 @@ For convenience, a =.jar= containing bouncy castle and the Java
 application is provided in the directory =signer/=. Thus, for
 launching the Java application, one should just do:
 #+BEGIN_SRC text
-java -jar 
+java -jar signer.jar [params]
+#+END_SRC
+
+The application is only usable in command line (but is made in such a
+way that it is easy to add a graphical user interface). The web
+service always give the parameters to pass to the application.
