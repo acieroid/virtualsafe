@@ -174,6 +174,7 @@ public class KeyManager {
             write(decKeyStr, DECRYPTION_KEY_FILE);
         } catch (Exception e) {
             System.out.println("ERROR: cannot parse certificate or key: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
         return true;
@@ -261,7 +262,13 @@ public class KeyManager {
      * Parse a private key from a reader
      */
     private PrivateKey parsePrivateKey(Reader reader) throws IOException {
-        return (PrivateKey) new PEMReader(reader).readObject();
+        Object obj = new PEMReader(reader).readObject();
+        if (obj instanceof PrivateKey) {
+            return (PrivateKey) obj;
+        } else {
+            KeyPair kp = (KeyPair) obj;
+            return kp.getPrivate();
+        }
     }
 
     /**
