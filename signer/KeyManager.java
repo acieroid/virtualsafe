@@ -263,6 +263,9 @@ public class KeyManager {
      */
     private PrivateKey parsePrivateKey(Reader reader) throws IOException {
         Object obj = new PEMReader(reader).readObject();
+        /* Depending on the OpenSSL configuration, the private key PEM
+         * file might contain only the private key, or both the
+         * private and public key */
         if (obj instanceof PrivateKey) {
             return (PrivateKey) obj;
         } else {
