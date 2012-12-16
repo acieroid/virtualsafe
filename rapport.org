@@ -1,7 +1,7 @@
 #+TITLE: INFO-F-405 -- Computer Security -- Project 2
 #+AUTHOR: Group 3 -- Vadim Baele, Marwan Bellouti, Quentin Stievenart, Damien Wiltgen
 #+LATEX_HEADER: \usepackage[a4paper]{geometry}
-#+LATEX_HEADER: \geometry{hscale=0.7,vscale=0.7,centering}
+#+LATEX_HEADER: \geometry{hscale=0.85,vscale=0.85,centering}
 #+LATEX_HEADER: \usepackage[pdftex]{hyperref}
 #+LATEX_HEADER: \hypersetup{colorlinks,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black}
 #+OPTIONS:   H:3 num:t toc:nil \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t todo:nil
@@ -121,9 +121,7 @@ The security objectives of the applications are:
   - Prevent an attacker to log in with another user account or with
     an administrator account
   - Prevent an attacker to obtain user or administrator passwords
-  - Prevent an attacker to obtain a user's private keys
-** TODO Application Overview
-*** TODO End-to-End Deployment Scenario
+** DONE Application Overview
 *** DONE Roles
 There are two kinds of users of the web service: users and
 administrators. They have the following roles
@@ -154,7 +152,7 @@ following table:
 *** DONE Key Scenarios
 The key scenarios are listed in the following table:
 #+CAPTION: Usage scenarios
-#+ATTR_LaTeX: longtable align=|c|p{\textwidth}|
+#+ATTR_LaTeX: longtable align=|c|l|
 |------+---------------------------------------------------------------|
 | *ID* | *Description*                                                 |
 |------+---------------------------------------------------------------|
@@ -195,7 +193,7 @@ The external dependencies are explained in more details in the
 following table. The security of the application depends on the
 security of those external dependencies.
 #+CAPTION: External Dependencies
-#+ATTR_LaTeX: longtable align=|c|p{\textwidth}|
+#+ATTR_LaTeX: longtable align=|c|p{0.8\textwidth}|
 |------+-------------------------------------------------------------------------------------------------------------------------|
 | *ID* | *Description*                                                                                                           |
 |------+-------------------------------------------------------------------------------------------------------------------------|
@@ -215,30 +213,32 @@ security of those external dependencies.
 |    7 | The program given with the application will use Java and the Bouncy Castle library.                                     |
 |------+-------------------------------------------------------------------------------------------------------------------------|
 *** DONE Application Security Mechanisms
-  - Sensitive data is stored encrypted (files) or hashed (passwords)
-    using secure methods.
+  - Sensitive data is stored encrypted (for files) or hashed (for
+    passwords) using cryptographically strong methods.
   - Every communication with the web server is made over an encrypted
-    channel, which is considered secure.
+    channel (HTTPS), which is considered secure.
   - The web service is authenticated to the database using MySQL
-    authentication scheme.
+    authentication scheme, and the MySQL server only accept
+    connections on the local host.
   - Server administration can only be performed from a SSH connection to
     the server's host, available only when having an accepted private
     key.
-  - The server's logs are monitored by =logwatch=, and any suspect
-    behaviour should be detected, the server's administrator will be
-    notified.
-  - The server's software versions are monitored by =portaudit=, and
-    any security flaw should be discovered in one of the installed
-    software, the server's administrator will be immediately notified
-    and should perform what is necessary to ensure the application
-    security.
-** TODO Application Decomposition
+  - The server's logs are monitored (by =logwatch= for example), and
+    any suspect behaviour should be detected, the server's
+    administrator will be notified.
+  - The server's software versions are monitored (by =portaudit= for
+    example), and any security flaw should be discovered in one of the
+    installed software, the server's administrator will be immediately
+    notified and should perform what is necessary to ensure the
+    application security.
+** DONE Application Decomposition
 *** DONE Trust Boundaries
 Identified trust boundaries are:
-  - The perimeter firewall
-  - The database trusts calls from the identified web application
-*** TODO Data Flows
-The general flow of data is represented in figure
+  - The perimeter firewall, were no data coming from the outside can
+    be trusted.
+  - The database trusts calls from the identified web application.
+*** DONE Data Flows
+The general flow of data for the web service is represented in figure
 \ref{fig:general-flow}
 
 \begin{figure}[ht!]
@@ -246,13 +246,11 @@ The general flow of data is represented in figure
 \caption{General dataflow of the web service}\label{fig:general-flow}
 \end{figure}
 
-# TODO: plus de diagrammes ou de texte pour expliquer les autres data
-# flows
 *** DONE Entry Points
 Entry points are described in the following table
 
 #+CAPTION: Entry points
-#+ATTR_LaTeX: longtable align=|c|p{3cm}|p{0.6\textwidth}|p{3cm}|
+#+ATTR_LaTeX: longtable align=|c|p{3cm}|p{0.5\textwidth}|p{3cm}|
 |------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
 | *ID* | *Name*                           | *Description*                                                                                                            | *Trust Levels*                                                                                                           |
 |------+----------------------------------+--------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------|
@@ -284,28 +282,42 @@ Entry points are described in the following table
 *** DONE Exits Points
 Exits points are:
   - The file list page, which displays the file name specified by the
-    file owner
-  - The menu of the application, which display the user's name
+    file owner as well as the name of the file owner
+  - The menu of the application (displayed on each page), which
+    display the user name specified by the user
 *** DONE Assets
 #+CAPTION: Assets
 #+ATTR_LaTeX: longtable align=|c|p{3cm}|p{0.6\textwidth}|p{3cm}|
-|------+---------------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------|
-| *ID* | *Name*                          | *Description*                                   | *Trust Levels*                                                                         |
-|------+---------------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------|
-|------+---------------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------|
-|    1 | User data                       | All data related to the users                   | (2) User with valid credentials (4) Server administrator (5) Database web user         |
-|------+---------------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------|
-|  1.1 | User login credentials          | The user names and their passwords              | (2) User with valid credentials (5) Database web user                                  |
-|------+---------------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------|
-|  1.2 | User file list                  | The lists of the file that belong to an user    | (2) User with valid credentials (4) Server administrator (5) Database web user         |
-|------+---------------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------|
-|  1.3 | User files                      | The files of the user stored in the file system | (2) User with valid credentials (4) Server administrator                               |
-|------+---------------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------|
-|------+---------------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------|
-|    2 | Administrator data              | All data related to the administrators          | (3) Administrator with valid credentials (5) Database web user (6) Database admin user |
-|------+---------------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------|
-|  2.1 | Administrator login credentials | The administrator names and their passwords     | (3) Administrator with valid credentials (5) Database web user (6) Database admin user |
-|------+---------------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------|
+|------+----------------------------------------------+-----------------------------------------------------------------------+----------------------------------------------------------------------------------------|
+| *ID* | *Name*                                       | *Description*                                                         | *Trust Levels*                                                                         |
+|------+----------------------------------------------+-----------------------------------------------------------------------+----------------------------------------------------------------------------------------|
+|------+----------------------------------------------+-----------------------------------------------------------------------+----------------------------------------------------------------------------------------|
+|    1 | User data                                    | All data related to the users                                         |                                                                                        |
+|------+----------------------------------------------+-----------------------------------------------------------------------+----------------------------------------------------------------------------------------|
+|  1.1 | User login credentials                       | The user names and their passwords                                    | (2) User with valid credentials (5) Database web user                                  |
+|------+----------------------------------------------+-----------------------------------------------------------------------+----------------------------------------------------------------------------------------|
+|  1.2 | User file list                               | The lists of the file that belong to an user                          | (2) User with valid credentials (4) Server administrator (5) Database web user         |
+|------+----------------------------------------------+-----------------------------------------------------------------------+----------------------------------------------------------------------------------------|
+|  1.3 | User files                                   | The files of the user stored in the file system                       | (2) User with valid credentials (4) Server administrator                               |
+|------+----------------------------------------------+-----------------------------------------------------------------------+----------------------------------------------------------------------------------------|
+|  1.4 | User file encryption key                     | The symmetric key used to encrypt a file                              | (2) User with valid credentials (4) Server administrator                               |
+|------+----------------------------------------------+-----------------------------------------------------------------------+----------------------------------------------------------------------------------------|
+|  1.5 | User private key                             | The key used by the user to sign its file                             | (2) User with valid credentials                                                        |
+|------+----------------------------------------------+-----------------------------------------------------------------------+----------------------------------------------------------------------------------------|
+|  1.6 | User private encryption key                  | The key used by the user to encrypt its file                          | (2) User with valid credentials                                                        |
+|------+----------------------------------------------+-----------------------------------------------------------------------+----------------------------------------------------------------------------------------|
+|------+----------------------------------------------+-----------------------------------------------------------------------+----------------------------------------------------------------------------------------|
+|    2 | Administrator data                           | All data related to the administrators                                |                                                                                        |
+|------+----------------------------------------------+-----------------------------------------------------------------------+----------------------------------------------------------------------------------------|
+|  2.1 | Administrator login credentials              | The administrator names and their passwords                           | (3) Administrator with valid credentials (5) Database web user (6) Database admin user |
+|------+----------------------------------------------+-----------------------------------------------------------------------+----------------------------------------------------------------------------------------|
+|------+----------------------------------------------+-----------------------------------------------------------------------+----------------------------------------------------------------------------------------|
+|    3 | System                                       | Assets relating to the underlying system                              |                                                                                        |
+|------+----------------------------------------------+-----------------------------------------------------------------------+----------------------------------------------------------------------------------------|
+|  3.1 | Availability of the website                  | The web service should always be available and accessible by everyone | (4) Server administrator                                                               |
+|------+----------------------------------------------+-----------------------------------------------------------------------+----------------------------------------------------------------------------------------|
+|  3.2 | Ability to execute code as a web server user |                                                                       |                                                                                        |
+
 
 ** TODO Threats
 The tables that follows lists the existing threats.
