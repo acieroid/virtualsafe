@@ -51,7 +51,7 @@ if (!session_has_user()) {
     header('Content-Disposition: attachment; filename="' . $name . '.sign"');
     header("Content-type: application/octet-stream");
     header('Content-Transfer-Encoding: binary');
-    readfile($key);
+    readfile($signature);
   } else {
     include('menu.php');
     echo '<p>The signature file does not exists or you do not own this file</p>';
@@ -75,7 +75,7 @@ if (!session_has_user()) {
   }
   ?></li>
   </ul>
-  <p>Then run <pre>java -jar signer.jar -d file_in key.key file_out</pre> to decrypt the file, and <pre>java -jar signer.jar -c file_out signature.sign</pre> to check that the file matches the signature.</p>
+  <p>Then run <pre>java -jar signer.jar -d file_in filou_out key.key</pre> to decrypt the file, and <pre>java -jar signer.jar -c file_out signature.sign</pre> to check that the file matches the signature.</p>
 <?php
 } else {
   echo '<p>Invalid request</p>';

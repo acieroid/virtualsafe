@@ -47,7 +47,7 @@ if (session_has_user()) {
   $token = CSRF::generate();
 ?>
 
-<p>Please use a strong password. If you do not know how to have a strong password, read <a href="http://xkcd.com/936/">this</a>. Passwords shorter than 10 characters or composed exclusively of alphabetic characters will be rejected</p>
+<p>Please use a strong password. If you do not know how to have a strong password, read <a href="http://xkcd.com/936/">this</a>.<br/><b>Passwords shorter than 10 characters or composed exclusively of alphabetic characters will be rejected.</b></p>
 <form action="signup.php?signup" method="post">
   <p><label for="name">Name: </label><input type="text" name="name" id="name"/></p>
   <p><label for="password">Password: </label><input type="password" name="password" id="password"/></p>
