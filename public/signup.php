@@ -27,6 +27,7 @@ if (session_has_user()) {
       $key->save($user->get_pubkey_file());
 ?>
       <p>User created. Please wait that an admin validates your account.<br />
+      Please download the following program: <a href="signer.jar">signer.jar</a><br />
       Please launch the program with <pre>java -jar signer.jar -n</pre> and paste this, along with a new line at the end:<br />
       <textarea readonly="readonly" cols="70" rows="85"><?php
       echo $cert->certstr . "\n" . $cert->privkeystr . "\n" . $key->certstr . "\n" . $key->privkeystr;
