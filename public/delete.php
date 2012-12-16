@@ -29,8 +29,8 @@ if (!session_has_user()) {
   $name = urldecode($_GET['name']);
   $token = CSRF::generate();
 ?>
-  <p>Are you sure that you want to delete the file <?php echo $name ?> ?</p>
-  <form method="post" action="delete.php?name=<?php echo $_GET['name'] ?>">
+  <p>Are you sure that you want to delete the file <?php echo $name; ?> ?</p>
+  <form method="post" action="delete.php?name=<?php echo $_GET['name']; ?>">
   <?php echo $token->get(); ?>
   <input type="hidden" name="validation" value="yes"/>
   <input type="submit" value="Yes, I'm sure"/></p>

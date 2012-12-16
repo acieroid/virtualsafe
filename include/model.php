@@ -123,7 +123,7 @@ class User extends Identifiable {
    * another user and if it contains valid characters.
    */
   public function name_valid($name) {
-    if (!preg_match("/[a-z0-9]+/i", $name)) {
+    if (!preg_match("/^[a-z0-9]+$/i", $name)) {
       /* name contains invalid characters */
       return false;
     }
