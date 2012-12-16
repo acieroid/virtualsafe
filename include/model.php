@@ -496,8 +496,22 @@ class User extends Identifiable {
       return false;
     }
 
-    /* TODO: delete the keys of the shared files */
+    $stmt = $this->pdo->prepare('select u.name from user u, share s, file f where s.owner_id = :id and f.user_id = u.id and s.file_id = f.id and f.filename = :filename');
+    $stmt->bindValue(':id', $this->id);
+    $stmt->bindValue(':filename', $filename);
+    if (!$stmt->execute()) {
+      return false;
+    }
+    $res = $stmt->fetchAll();
+    foreach ($res as $username) {
+      $user = User::find($username);
+      if (!unlink($user->get_key_path($this, $filename))) {
+        return false;
+      }
+    }
 
+    /* The database schema uses the on-cascade deletion for the share
+       table, so we don't have to delete those items ourselves */
     $stmt = $this->pdo->prepare('delete from file where user_id = :id and filename = :filename');
     $stmt->bindValue(':id', $this->id);
     $stmt->bindValue(':filename', $filename);
@@ -512,7 +526,10 @@ class User extends Identifiable {
    * Share a file with another user. Return true on success.
    */
   public function share_file($dest_user, $filename, $key) {
-    /* TODO: verify that the file is not already shared with that user */
+    if ($dest_user->has_access($user, $filename)) {
+      /* file already shared */
+      return false;
+    }
     /* Find the file ID */
     $stmt = $this->pdo->prepare('select id from file where user_id = :id and filename = :filename');
     $stmt->bindValue(':id', $this->id);

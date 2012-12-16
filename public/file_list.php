@@ -14,8 +14,12 @@ if (!session_has_user()) {
   $user = session_get_user();
   $filenames = $user->list_owned_files();
   echo '<ul>';
-  foreach($filenames as $f) {
-    echo '<li>' . $f . ': <a href="download.php?name=' . urlencode($f) . '">download</a> - <a href="share.php?filename=' . urlencode($f) . '">share</a> - <a href="delete.php?name=' . urlencode($f) . '">delete</a></li>';
+  if (count($filenames) == 0) {
+    echo '<p>You do not have any file</p>';
+  } else {
+    foreach($filenames as $f) {
+      echo '<li>' . $f . ': <a href="download.php?name=' . urlencode($f) . '">download</a> - <a href="share.php?filename=' . urlencode($f) . '">share</a> - <a href="delete.php?name=' . urlencode($f) . '">delete</a></li>';
+    }
   }
   echo '</ul>';
 }

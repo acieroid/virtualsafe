@@ -20,11 +20,14 @@ if (!session_has_user()) {
 
       if ($user->has_file($filename)) {
         if ($dest_user != null) {
-          if ($user->share_file($dest_user, $filename, $_FILES['key']['tmp_name'])) {
-            echo '<p>The file is now shared with the user ' . $dest_user->name . '</p>';
+          if (!$dest_user->has_access($user, $filename)) {
+            if ($user->share_file($dest_user, $filename, $_FILES['key']['tmp_name'])) {
+              echo '<p>The file is now shared with the user ' . $dest_user->name . '</p>';
+            } else {
+              echo '<p>Error when sharing the file</p>';
+            }
           } else {
-            echo '<p>Error when sharing the file</p>';
-          }
+            echo '<p>This user already has access to this file</p>';
         } else {
           echo '<p>The user you want to share the file with do not exists</p>';
         }
