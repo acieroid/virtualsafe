@@ -92,13 +92,25 @@ if (!session_has_user()) {
 } else if (isset($_GET['name'], $_GET['user'])) {
   /* Show the URL for downloading the file and the key */
   include('menu.php');
+  $owner = User::find(urldecode($_GET['user']));
+  if ($owner == null) {
+    die('No such user');
+  }
+  $signature = $owner->get_signature_path(urldecode($_GET['name']));
+
 ?>
 
   <p>Download the following files:</p>
   <ul>
   <li><a href="download_shared.php?name=<?php echo $_GET['name']; ?>&user=<?php echo $_GET['user']; ?>&encrypted">The encrypted file</a></li>
   <li><a href="download_shared.php?name=<?php echo $_GET['name']; ?>&user=<?php echo $_GET['user']; ?>&key">The key</a></li>
-  <li><a href="download_shared.php?name=<?php echo $_GET['name']; ?>&user=<?php echo $_GET['user']; ?>&signature">The signature</a></li>
+  <li><?php
+  if (file_exists($signature)) {
+    echo '<a href="download_shared.php?name=' . $_GET['name'] . '&user=' . $_GET['user'] . '&signature">The signature</a>';
+  } else {
+    echo 'There is no signature for this file.';
+  }
+  ?></li>
   <li><a href="download_shared.php?name=<?php echo $_GET['name']; ?>&user=<?php echo $_GET['user']; ?>&certificate">The certificate</a></li>  
   </ul>
   <p>Then run <pre>java -jar signer.jar -d file_in key.key file_out</pre> to decrypt the file, and <pre>java -jar signer.jar -c file_out signature.sign certificate.crt</pre> to check that the file matches the signature.</p>

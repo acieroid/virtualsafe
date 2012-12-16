@@ -59,13 +59,21 @@ if (!session_has_user()) {
 } else if (isset($_GET['name'])) {
   /* Show the URL for downloading the file and the key */
   include('menu.php');
+  $user = session_get_user();
+  $signature = $user->get_signature_path(urldecode($_GET['name']));
 ?>
 
   <p>Download the following files:</p>
   <ul>
   <li><a href="download.php?name=<?php echo $_GET['name']; ?>&encrypted">The encrypted file</a></li>
   <li><a href="download.php?name=<?php echo $_GET['name']; ?>&key">The key</a></li>
-  <li><a href="download.php?name=<?php echo $_GET['name']; ?>&signature">The signature</a></li>
+  <li><?php
+  if (file_exists($signature)) {
+    echo '<a href="download.php?name=' . $_GET['name'] . '&signature">The signature</a>';
+  } else {
+    echo 'There is no signature for this file.';
+  }
+  ?></li>
   </ul>
   <p>Then run <pre>java -jar signer.jar -d file_in key.key file_out</pre> to decrypt the file, and <pre>java -jar signer.jar -c file_out signature.sign</pre> to check that the file matches the signature.</p>
 <?php
