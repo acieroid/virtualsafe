@@ -641,6 +641,16 @@ class User extends Identifiable {
     }
     return $result;
   }
+
+  /**
+   * Remove a shared file
+   */
+  public function unshare($user, $filename) {
+    $stmt = $this->pdo->prepare('delete from share where owner_id = :id and file_id = (select id from file where user_id = :id and filename = :filename)');
+    $stmt->bindValue(':id', $this->id);
+    $stmt->bindValue(':filename', $filename);
+    return $stmt->execute();
+  }
 }
 
 ?>
